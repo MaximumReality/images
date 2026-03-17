@@ -242,6 +242,25 @@
         function clearHistory() { document.getElementById('historyThumbs').innerHTML = ''; }
 
         document.getElementById('generateBtn').addEventListener('click', generateBatch);
+        // Auto-load prompt from URL parameter
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const promptFromForge = params.get('prompt');
+    
+    if (promptFromForge) {
+        const promptInput = document.getElementById('prompt');
+        if (promptInput) {
+            promptInput.value = decodeURIComponent(promptFromForge);
+            
+            // This will trigger the generation immediately!
+            // We use a tiny timeout to make sure the UI is ready
+            setTimeout(() => {
+                generateBatch(); 
+            }, 500);
+        }
+    }
+});
+
     </script>
 </body>
 </html>
