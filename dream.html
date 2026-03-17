@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Forge • Dream Console</title>
+
+<script src="https://js.puter.com/v2/"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+--dream-cyan:#7df9ff;
+--dream-violet:#b993ff;
+--dream-magenta:#ff77c8;
+}
+
+body{
+font-family: Inter, system-ui, sans-serif;
+background: radial-gradient(circle at 20% 10%, #1a1f4a, #070814 55%, #02030a);
+background-attachment: fixed;
+color:#dbe4ff;
+}
+
+.panel{
+background: rgba(30,35,80,0.35);
+border: 1px solid rgba(140,170,255,0.25);
+backdrop-filter: blur(18px);
+box-shadow: 0 0 40px rgba(120,160,255,0.08);
+}
+
+.console-glow{
+animation:dreamPulse 7s infinite;
+}
+
+@keyframes dreamPulse{
+0%{box-shadow:0 0 0px rgba(125,249,255,0.15);}
+50%{box-shadow:0 0 35px rgba(125,249,255,0.25);}
+100%{box-shadow:0 0 0px rgba(125,249,255,0.15);}
+}
+
+.spinner{animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+h1{
+font-family:Orbitron, Inter, sans-serif;
+letter-spacing:0.08em;
+}
+</style>
+</head>
+
+<body class="min-h-screen">
+
+<div class="max-w-7xl mx-auto p-6">
+
+<div class="flex justify-between items-center mb-10">
+<div>
+<h1 class="text-3xl font-semibold">Neural Forge</h1>
+<p class="text-indigo-300/70 text-sm">Dream Console • Image Manifestation System</p>
+</div>
+<div id="authStatus" class="text-xs px-4 py-2 panel rounded-full">Signal Offline</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+<!-- CONTROL PANEL -->
+<div class="lg:col-span-5 panel rounded-3xl p-8">
+
+<form id="form" class="space-y-7">
+
+<textarea id="prompt" rows="4"
+class="w-full bg-black/40 border border-indigo-400/30 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--dream-cyan)]"
+placeholder="Describe the dream you want to manifest..."></textarea>
+
+<textarea id="negative" rows="2"
+class="w-full bg-black/40 border border-indigo-400/30 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--dream-cyan)]"
+placeholder="Optional distortions to suppress..."></textarea>
+
+<select id="model"
+class="w-full bg-black/40 border border-indigo-400/30 rounded-2xl px-5 py-4"></select>
+
+<div class="grid grid-cols-2 gap-4">
+<input id="width" type="number" value="1024"
+class="bg-black/40 border border-indigo-400/30 rounded-2xl px-4 py-3">
+<input id="height" type="number" value="1024"
+class="bg-black/40 border border-indigo-400/30 rounded-2xl px-4 py-3">
+</div>
+
+<button id="generateBtn" type="button"
+class="console-glow w-full bg-[linear-gradient(135deg,#7df9ff,#b993ff)]
+text-black font-semibold py-5 rounded-2xl">
+Manifest Vision
+</button>
+
+</form>
+
+</div>
+
+<!-- VIEWFINDER -->
+<div class="lg:col-span-7 panel rounded-3xl p-8 flex flex-col">
+
+<div id="status" class="text-indigo-300/70 text-sm mb-4"></div>
+
+<div id="viewfinder"
+class="flex-1 rounded-3xl p-6 overflow-auto"
+style="background:radial-gradient(circle at center,#0f143a,#02030a);">
+
+<div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+
+<div id="placeholder"
+class="h-full flex items-center justify-center text-indigo-400/40">
+Dream output will appear here
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+// minimal version to keep message readable
+const models = [
+{value:"gpt-image-1.5",label:"GPT Image"},
+{value:"flux",label:"Flux Fast"},
+{value:"sd3",label:"Stable Diffusion"}
+];
+
+models.forEach(m=>{
+const opt=document.createElement('option');
+opt.value=m.value;
+opt.textContent=m.label;
+document.getElementById('model').appendChild(opt);
+});
+
+document.getElementById('generateBtn').onclick=async()=>{
+const prompt=document.getElementById('prompt').value;
+if(!prompt)return;
+
+document.getElementById('status').textContent="Dream forming…";
+
+const img=await puter.ai.txt2img(prompt);
+const grid=document.getElementById('resultsGrid');
+grid.innerHTML="";
+grid.appendChild(img);
+
+document.getElementById('status').textContent="Dream stabilized.";
+};
+</script>
+
+</body>
+</html>
