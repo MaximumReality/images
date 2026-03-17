@@ -169,35 +169,39 @@
             status.textContent = "FORGE STABILIZED";
         }
 
-        async function generateSingleImage(prompt) {
-    // We add ?t=... to the end to force a fresh connection
-    const apiUrl = `https://images-d5taimsz0-maximumrealitys-projects.vercel.app/api/generate?t=${Date.now()}`;
-    
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json' 
-        },
-        body: JSON.stringify({
-            prompt: prompt,
-            model: document.getElementById('model').value,
-            test_mode: document.getElementById('testMode').checked,
-            width: 1024, 
-            height: 1024
-        })
-    });
+                async function generateSingleImage(prompt) {
+            // Replace this with your CLEAN production URL from the Vercel Dashboard
+            const productionUrl = "https://images-d5taimsz0-maximumrealitys-projects.vercel.app/api/generate";
+            
+            try {
+                const response = await fetch(productionUrl, {
+                    method: 'POST',
+                    mode: 'cors', // Explicitly ask for CORS
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: document.getElementById('model').value,
+                        width: 1024, 
+                        height: 1024
+                    })
+                });
 
-    if (!response.ok) {
-        // This will tell us if it's a 404, 500, or 405 error
-        const errorText = await response.text();
-        console.error("Server Error:", errorText);
-        throw new Error(`SERVER_ERROR_${response.status}`);
-    }
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    // This helps us see if the issue is 'Model Too Busy' or 'Invalid Key'
+                    throw new Error(errorData.error || `Status: ${response.status}`);
+                }
 
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
-}
+                const blob = await response.blob();
+                return URL.createObjectURL(blob);
+            } catch (err) {
+                console.error("Forge Error:", err);
+                throw err; // Pass it to the UI
+            }
+        }
+
 
 
         function createResultSlot() {
