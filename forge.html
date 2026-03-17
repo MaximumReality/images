@@ -1,0 +1,226 @@
+<!DOCTYPE html><html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Forge • HF Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0e1f;
+            --dream-cyan: #7df9ff;
+            --dream-violet: #b993ff;
+            --dream-magenta: #ff77c8;
+            --border-dream: rgba(125, 249, 255, 0.18);
+            --glow-cyan: rgba(125, 249, 255, 0.35);
+        }
+        body {
+            background: radial-gradient(circle at 20% 15%, #1a1f4a 0%, #0f143a 30%, #0a0e1f 55%, #02030a 100%);
+            color: #e0e7ff;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--glow-cyan);
+        }
+        .glass-card {
+            background: rgba(15, 20, 58, 0.45);
+            border: 1px solid var(--border-dream);
+            backdrop-filter: blur(12px);
+            border-radius: 1.75rem;
+        }
+        #generateBtn {
+            background: linear-gradient(135deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
+            color: #000c1a;
+            font-weight: 700;
+            box-shadow: 0 0 30px var(--glow-cyan);
+        }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <nav class="flex justify-between items-center mb-10 border-b border-zinc-800/50 pb-6">
+            <div class="flex gap-6 items-center">
+                <a href="/" class="text-zinc-500 hover:text-zinc-200 text-xs font-medium transition-colors uppercase tracking-widest">Puter Studio</a>
+                <a href="/forge.html" class="text-cyan-400 text-xs font-bold border-b-2 border-cyan-400 pb-1 uppercase tracking-widest">Neural Forge</a>
+            </div>
+            <div class="text-[10px] px-3 py-1 glass-card rounded-full border text-emerald-400 border-emerald-500/30 font-bold uppercase tracking-tighter">HF ENGINE LIVE</div>
+        </nav>
+
+        <header class="mb-8">
+            <h1 class="text-3xl font-semibold tracking-tight">Neural Forge</h1>
+            <p class="text-zinc-400 text-sm">Hugging Face API Studio</p>
+        </header>
+
+        <main class="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-5 glass-card p-6 md:p-8">
+                <form id="form" class="space-y-6">
+                    <div class="relative">
+                        <label class="block text-[10px] font-bold text-zinc-500 uppercase mb-2 tracking-widest">Prompt</label>
+                        <textarea id="prompt" rows="4" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-cyan-400 resize-none" placeholder="Describe your vision..."></textarea>
+                        <button type="button" onclick="document.getElementById('prompt').value=''" class="absolute top-8 right-3 text-[10px] text-zinc-600 hover:text-zinc-400">CLEAR</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Model</label>
+                            <select id="model" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-xl px-4 py-3 text-xs outline-none">
+                                <option value="black-forest-labs/FLUX.1-schnell">FLUX.1 Schnell</option>
+                                <option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL Base</option>
+                                <option value="Lykon/dreamshaper-8">DreamShaper 8</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Batch Size</label>
+                            <select id="numImages" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-xl px-4 py-3 text-xs outline-none">
+                                <option value="1">1 Image</option>
+                                <option value="2">2 Images</option>
+                                <option value="3" selected>3 Images</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-cyan-500/5 p-3 rounded-xl border border-cyan-500/10">
+                        <input type="checkbox" id="testMode" class="w-4 h-4 accent-cyan-400">
+                        <label for="testMode" class="text-[10px] font-bold text-cyan-400 uppercase tracking-tighter">Test Mode (Preview only)</label>
+                    </div>
+
+                    <button id="generateBtn" type="button" class="w-full py-5 rounded-2xl text-xs font-black uppercase tracking-[0.3em] transition-all active:scale-95 shadow-xl">
+                        Forge Masterpiece
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-7 glass-card p-6 md:p-8 flex flex-col relative">
+                <div class="flex justify-between items-center mb-4">
+                    <div id="status" class="text-[10px] uppercase font-bold text-zinc-500 tracking-[0.2em]">Ready to forge</div>
+                    <button type="button" onclick="clearGallery()" class="text-[10px] text-zinc-500 hover:text-white uppercase tracking-wider">✕ Reset</button>
+                </div>
+
+                <div id="viewfinder" class="flex-1 bg-black/30 border border-zinc-800/30 rounded-3xl p-4 overflow-auto relative min-h-[350px]">
+                    <div id="resultsGrid" class="grid grid-cols-1 gap-6 sm:grid-cols-2"></div>
+                    <div id="placeholder" class="absolute inset-0 flex items-center justify-center text-zinc-600 text-[10px] uppercase tracking-[0.3em] font-bold">The forge is cold</div>
+                    
+                    <div id="loadingOverlay" class="hidden absolute inset-0 bg-[#0a0e1f]/95 flex items-center justify-center z-10 rounded-3xl backdrop-blur-md">
+                        <div class="text-center">
+                            <div class="spinner w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto shadow-[0_0_15px_rgba(125,249,255,0.5)]"></div>
+                            <p class="mt-6 text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em] animate-pulse">Forging Vision...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="historySection" class="mt-6 pt-6 border-t border-zinc-800/50">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">Session History</p>
+                        <button onclick="clearHistory()" class="text-[10px] text-zinc-600 hover:text-pink-400 uppercase">Wipe</button>
+                    </div>
+                    <div id="historyThumbs" class="flex gap-3 overflow-x-auto pb-2 min-h-[64px]"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function generateBatch() {
+            const status = document.getElementById('status');
+            const btn = document.getElementById('generateBtn');
+            const overlay = document.getElementById('loadingOverlay');
+            const grid = document.getElementById('resultsGrid');
+            const placeholder = document.getElementById('placeholder');
+            const prompt = document.getElementById('prompt').value.trim();
+
+            if (!prompt) { status.textContent = "PROMPT REQUIRED"; return; }
+
+            const num = parseInt(document.getElementById('numImages').value);
+            btn.disabled = true;
+            overlay.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            grid.innerHTML = '';
+            status.textContent = `PROCESS INITIATED: ${num} IMAGES`;
+
+            const promises = Array.from({ length: num }, async () => {
+                const slot = createResultSlot();
+                grid.appendChild(slot);
+                try {
+                    const imgUrl = await generateSingleImage(prompt);
+                    slot.innerHTML = `<img src="${imgUrl}" class="w-full h-auto rounded-xl">`;
+                    addDownloadButton(slot, imgUrl);
+                    addToHistory(imgUrl);
+                } catch (err) {
+                    slot.innerHTML = `<p class="text-pink-400 text-[10px] p-4">ERR: ${err.message}</p>`;
+                }
+            });
+
+            await Promise.all(promises);
+            btn.disabled = false;
+            overlay.classList.add('hidden');
+            status.textContent = "FORGE STABILIZED";
+        }
+
+        async function generateSingleImage(prompt) {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    model: document.getElementById('model').value,
+                    test_mode: document.getElementById('testMode').checked,
+                    width: 1024, height: 1024
+                })
+            });
+            if (!response.ok) throw new Error("API REJECTED");
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+        }
+
+        function createResultSlot() {
+            const div = document.createElement('div');
+            div.className = "relative bg-zinc-900/50 border border-zinc-800 rounded-2xl min-h-[200px] flex items-center justify-center overflow-hidden transition-all duration-500";
+            div.innerHTML = `<div class="spinner w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full"></div>`;
+            return div;
+        }
+
+        function addDownloadButton(container, src) {
+            const btn = document.createElement('a');
+            btn.href = src; btn.download = `forge-${Date.now()}.png`;
+            btn.className = "absolute bottom-3 right-3 bg-white text-black px-3 py-1 rounded-lg text-[9px] font-black uppercase shadow-lg hover:scale-105 transition-transform";
+            btn.innerHTML = 'Save';
+            container.appendChild(btn);
+        }
+
+        function addToHistory(src) {
+            const container = document.getElementById('historyThumbs');
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = "w-14 h-14 object-cover rounded-xl border border-zinc-800 cursor-pointer flex-shrink-0 hover:border-cyan-400 transition-all";
+            img.onclick = () => {
+                const grid = document.getElementById('resultsGrid');
+                grid.innerHTML = `<div class="col-span-full bg-zinc-900 border border-zinc-800 rounded-2xl p-2"><img src="${src}" class="w-full rounded-xl"></div>`;
+                document.getElementById('placeholder').classList.add('hidden');
+            };
+            container.prepend(img);
+        }
+
+        function clearGallery() {
+            document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('placeholder').classList.remove('hidden');
+            document.getElementById('status').textContent = "FORGE READY";
+        }
+
+        function clearHistory() { document.getElementById('historyThumbs').innerHTML = ''; }
+
+        document.getElementById('generateBtn').addEventListener('click', generateBatch);
+    </script>
+</body>
+</html>
