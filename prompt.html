@@ -351,11 +351,19 @@
     <span class="mr-banner-inner">★ MAXIMUM REALITY MODE ACTIVATED ★ &nbsp;&nbsp; VHS SCANLINES ENGAGED &nbsp;&nbsp; GLITCH PROTOCOLS RUNNING &nbsp;&nbsp; NEON GRID ONLINE &nbsp;&nbsp; PIXEL SNACKS LOADING &nbsp;&nbsp; HOLOGRAM STABLE &nbsp;&nbsp; ★ MAXIMUM REALITY MODE ACTIVATED ★ &nbsp;&nbsp; VHS SCANLINES ENGAGED &nbsp;&nbsp; GLITCH PROTOCOLS RUNNING &nbsp;&nbsp;</span>
   </div>
 
-  <header class="header">
-    <div class="header-left">
-      <div class="logo">PROMPT FORGE</div>
-      <button class="mr-toggle-btn" id="mr-toggle-btn" onclick="toggleMRMode()">⬡ MR MODE</button>
-    </div>
+ <header class="header">
+  <div class="header-left">
+    <div class="logo">PROMPT FORGE</div>
+    <button class="mr-toggle-btn" id="mr-toggle-btn" onclick="toggleMRMode()">⬡ MR MODE</button>
+  </div>
+  
+  <div class="mode-tabs" style="background: transparent; border: none;">
+    <a href="index.html" class="mode-tab" style="text-decoration: none;">Studio</a>
+    <a href="forge.html" class="mode-tab" style="text-decoration: none;">Neural Forge</a>
+    <button class="mode-tab active">Prompt</button> 
+  </div>
+
+  <div class="header-right" style="display: flex; gap: 10px; align-items: center;">
     <div class="mode-tabs">
       <button class="mode-tab active" data-mode="image">IMAGE</button>
       <button class="mode-tab" data-mode="music">MUSIC</button>
@@ -363,7 +371,9 @@
       <button class="mode-tab" data-mode="animation">ANIM</button>
     </div>
     <a href="https://maximumreality.xyz" class="home-btn" title="maximumreality.xyz">⌂</a>
-  </header>
+  </div>
+</header>
+
 
   <div class="forge-grid" id="forge-grid">
 
