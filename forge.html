@@ -260,21 +260,22 @@
         // Auto-load prompt from URL parameter
 window.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
-    const promptFromForge = params.get('prompt');
+    // Use 'prompt' to match the URL created by your Prompt Forge app
+    const sharedPrompt = params.get('prompt');
     
-    if (promptFromForge) {
+    if (sharedPrompt) {
         const promptInput = document.getElementById('prompt');
         if (promptInput) {
-            promptInput.value = decodeURIComponent(promptFromForge);
+            promptInput.value = decodeURIComponent(sharedPrompt);
             
-            // This will trigger the generation immediately!
-            // We use a tiny timeout to make sure the UI is ready
+            // Give the UI a moment to breathe, then start forging!
             setTimeout(() => {
                 generateBatch(); 
             }, 500);
         }
     }
 });
+
 
     </script>
 </body>
