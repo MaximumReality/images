@@ -1,156 +1,409 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neural Forge • Dream Console</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Forge • AI Image Studio</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0e1f;
+            --bg-dream: #0f143a;
+            --dream-cyan: #7df9ff;
+            --dream-violet: #b993ff;
+            --dream-magenta: #ff77c8;
+            --dream-pink: #ff9edb;
+            --text-soft: #e0e7ff;
+            --text-muted: #a5b4fc;
+            --border-dream: rgba(125, 249, 255, 0.18);
+            --glow-cyan: rgba(125, 249, 255, 0.35);
+            --glow-violet: rgba(185, 147, 255, 0.25);
+            --glow-magenta: rgba(255, 119, 200, 0.22);
+        }
 
-<script src="https://js.puter.com/v2/"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+        body {
+            background: radial-gradient(
+                circle at 20% 15%,
+                #1a1f4a 0%,
+                #0f143a 30%,
+                #0a0e1f 55%,
+                #02030a 100%
+            );
+            color: var(--text-soft);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+        }
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+        h1 {
+            font-family: 'Orbitron', 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: linear-gradient(90deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px var(--glow-cyan);
+        }
 
-:root{
---dream-cyan:#7df9ff;
---dream-violet:#b993ff;
---dream-magenta:#ff77c8;
-}
+        .glass-card {
+            background: rgba(15, 20, 58, 0.45);
+            border: 1px solid var(--border-dream);
+            backdrop-filter: blur(12px);
+            box-shadow: 
+                0 8px 32px var(--glow-cyan),
+                inset 0 0 20px var(--glow-violet);
+            border-radius: 1.75rem;
+        }
 
-body{
-font-family: Inter, system-ui, sans-serif;
-background: radial-gradient(circle at 20% 10%, #1a1f4a, #070814 55%, #02030a);
-background-attachment: fixed;
-color:#dbe4ff;
-}
+        #generateBtn {
+            background: linear-gradient(135deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
+            color: #000c1a;
+            font-weight: 600;
+            box-shadow: 0 0 30px var(--glow-cyan);
+            transition: all 0.4s ease;
+        }
 
-.panel{
-background: rgba(30,35,80,0.35);
-border: 1px solid rgba(140,170,255,0.25);
-backdrop-filter: blur(18px);
-box-shadow: 0 0 40px rgba(120,160,255,0.08);
-}
+        #generateBtn:hover:not(:disabled) {
+            box-shadow: 0 0 50px var(--glow-magenta);
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
 
-.console-glow{
-animation:dreamPulse 7s infinite;
-}
+        .thumb:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 25px var(--glow-magenta);
+            animation: dreamPulse 3s ease-in-out infinite;
+        }
 
-@keyframes dreamPulse{
-0%{box-shadow:0 0 0px rgba(125,249,255,0.15);}
-50%{box-shadow:0 0 35px rgba(125,249,255,0.25);}
-100%{box-shadow:0 0 0px rgba(125,249,255,0.15);}
-}
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--dream-cyan) !important;
+            box-shadow: 0 0 15px var(--glow-cyan) !important;
+            outline: none;
+        }
 
-.spinner{animation:spin 1s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
+        .text-zinc-400 { color: var(--text-muted); }
+        .text-zinc-500 { color: var(--text-muted); }
 
-h1{
-font-family:Orbitron, Inter, sans-serif;
-letter-spacing:0.08em;
-}
-</style>
+        @keyframes dreamPulse {
+            0%, 100% { box-shadow: 0 0 0px var(--glow-cyan); }
+            50%      { box-shadow: 0 0 35px var(--glow-cyan), 0 0 20px var(--glow-violet); }
+        }
+
+        .animate-dream-pulse {
+            animation: dreamPulse 8s ease-in-out infinite;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-
 <body class="min-h-screen">
-
 <div class="max-w-7xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-semibold tracking-tight">Neural Forge</h1>
+            <p class="text-zinc-400 text-sm">Powered by Puter AI • Professional Image Studio</p>
+        </div>
+        <div id="authStatus" class="text-xs px-4 py-2 glass-card rounded-full border">Not signed in</div>
+    </div>
 
-<div class="flex justify-between items-center mb-10">
-<div>
-<h1 class="text-3xl font-semibold">Neural Forge</h1>
-<p class="text-indigo-300/70 text-sm">Dream Console • Image Manifestation System</p>
-</div>
-<div id="authStatus" class="text-xs px-4 py-2 panel rounded-full">Signal Offline</div>
-</div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Controls -->
+        <div class="lg:col-span-5 glass-card p-8">
+            <form id="form" class="space-y-8">
+                <div>
+                    <label for="prompt" class="block text-sm font-medium text-zinc-400 mb-2">Prompt</label>
+                    <textarea id="prompt" rows="4" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none resize-none" placeholder="A serene mountain lake at golden hour, photorealistic, cinematic lighting..."></textarea>
+                </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div>
+                    <label for="negative" class="block text-sm font-medium text-zinc-400 mb-2">Negative Prompt (optional)</label>
+                    <textarea id="negative" rows="2" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none resize-none" placeholder="blurry, low quality, artifacts, deformed..."></textarea>
+                </div>
 
-<!-- CONTROL PANEL -->
-<div class="lg:col-span-5 panel rounded-3xl p-8">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label for="model" class="block text-sm font-medium text-zinc-400 mb-2">Model</label>
+                        <select id="model" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label for="quality" class="block text-sm font-medium text-zinc-400 mb-2">Quality</label>
+                        <select id="quality" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none">
+                            <option value="">Default</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="hd">HD</option>
+                            <option value="standard">Standard</option>
+                        </select>
+                    </div>
+                </div>
 
-<form id="form" class="space-y-7">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-3">Dimensions</label>
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" onclick="setPreset(1024,1024)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700/50 rounded-2xl hover:bg-zinc-800/30 transition-colors">Square</button>
+                        <button type="button" onclick="setPreset(896,1344)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700/50 rounded-2xl hover:bg-zinc-800/30 transition-colors">Portrait</button>
+                        <button type="button" onclick="setPreset(1344,896)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700/50 rounded-2xl hover:bg-zinc-800/30 transition-colors">Landscape</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-zinc-500">Width</label>
+                            <input id="width" type="number" min="256" max="2048" step="64" value="1024" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-3 text-base">
+                        </div>
+                        <div>
+                            <label class="text-xs text-zinc-500">Height</label>
+                            <input id="height" type="number" min="256" max="2048" step="64" value="1024" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-3 text-base">
+                        </div>
+                    </div>
+                </div>
 
-<textarea id="prompt" rows="4"
-class="w-full bg-black/40 border border-indigo-400/30 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--dream-cyan)]"
-placeholder="Describe the dream you want to manifest..."></textarea>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label for="numImages" class="block text-sm font-medium text-zinc-400 mb-2">Number of Images</label>
+                        <select id="numImages" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 self-end pb-4">
+                        <input type="checkbox" id="testMode" class="w-5 h-5 accent-cyan-400">
+                        <label for="testMode" class="text-sm text-zinc-400">Test Mode (free preview)</label>
+                    </div>
+                </div>
 
-<textarea id="negative" rows="2"
-class="w-full bg-black/40 border border-indigo-400/30 rounded-2xl px-5 py-4 focus:outline-none focus:border-[var(--dream-cyan)]"
-placeholder="Optional distortions to suppress..."></textarea>
+                <button id="generateBtn" type="button"
+                        class="w-full py-5 rounded-2xl text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                    <span id="btnText">Generate Images</span>
+                </button>
+            </form>
+        </div>
 
-<select id="model"
-class="w-full bg-black/40 border border-indigo-400/30 rounded-2xl px-5 py-4"></select>
+        <!-- Preview Area -->
+        <div class="lg:col-span-7 glass-card p-8 flex flex-col relative">
+            <div id="status" role="alert" aria-live="polite" class="text-sm h-6 mb-4 text-zinc-400"></div>
 
-<div class="grid grid-cols-2 gap-4">
-<input id="width" type="number" value="1024"
-class="bg-black/40 border border-indigo-400/30 rounded-2xl px-4 py-3">
-<input id="height" type="number" value="1024"
-class="bg-black/40 border border-indigo-400/30 rounded-2xl px-4 py-3">
-</div>
+            <div id="viewfinder" class="flex-1 bg-black/30 border border-zinc-800/30 rounded-3xl p-6 overflow-auto relative">
+                <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+                <div id="placeholder" class="h-full flex items-center justify-center text-zinc-500 text-sm">Your images will appear here</div>
+                <div id="loadingOverlay" class="hidden absolute inset-0 bg-gradient-to-br from-[#0f143a]/80 to-[#02030a]/90 flex items-center justify-center z-10 rounded-3xl">
+                    <div class="text-center animate-dream-pulse">
+                        <div class="spinner w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
+                        <p class="mt-6 text-lg font-medium">Generating images…</p>
+                        <p id="progressText" class="mt-2 text-sm text-zinc-400">Please wait 10–60 seconds depending on model & count</p>
+                    </div>
+                </div>
+            </div>
 
-<button id="generateBtn" type="button"
-class="console-glow w-full bg-[linear-gradient(135deg,#7df9ff,#b993ff)]
-text-black font-semibold py-5 rounded-2xl">
-Manifest Vision
-</button>
-
-</form>
-
-</div>
-
-<!-- VIEWFINDER -->
-<div class="lg:col-span-7 panel rounded-3xl p-8 flex flex-col">
-
-<div id="status" class="text-indigo-300/70 text-sm mb-4"></div>
-
-<div id="viewfinder"
-class="flex-1 rounded-3xl p-6 overflow-auto"
-style="background:radial-gradient(circle at center,#0f143a,#02030a);">
-
-<div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
-
-<div id="placeholder"
-class="h-full flex items-center justify-center text-indigo-400/40">
-Dream output will appear here
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+            <div id="history" class="mt-8">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs uppercase tracking-widest text-zinc-500">Recent Generations</p>
+                    <button onclick="clearHistory()" class="text-xs text-zinc-400 hover:text-white">Clear</button>
+                </div>
+                <div id="historyThumbs" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-// minimal version to keep message readable
+// Models list (real ones from Puter 2026 docs)
 const models = [
-{value:"gpt-image-1.5",label:"GPT Image"},
-{value:"flux",label:"Flux Fast"},
-{value:"sd3",label:"Stable Diffusion"}
+    { value: "gpt-image-1.5", label: "GPT Image 1.5 (OpenAI)" },
+    { value: "dall-e-3", label: "DALL·E 3" },
+    { value: "black-forest-labs/FLUX.1-schnell", label: "FLUX.1 Schnell (Fast)" },
+    { value: "stabilityai/stable-diffusion-3-medium", label: "Stable Diffusion 3 Medium" },
+    { value: "grok-2-image", label: "Grok Image (xAI)" },
+    { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash (Nano Banana)" },
+    { value: "google/imagen-4.0-preview", label: "Imagen 4 Preview" }
 ];
 
-models.forEach(m=>{
-const opt=document.createElement('option');
-opt.value=m.value;
-opt.textContent=m.label;
-document.getElementById('model').appendChild(opt);
+let historyImages = [];
+
+// Populate models
+const modelSelect = document.getElementById('model');
+models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.value;
+    opt.textContent = m.label;
+    modelSelect.appendChild(opt);
 });
 
-document.getElementById('generateBtn').onclick=async()=>{
-const prompt=document.getElementById('prompt').value;
-if(!prompt)return;
+function setPreset(w, h) {
+    document.getElementById('width').value = w;
+    document.getElementById('height').value = h;
+}
 
-document.getElementById('status').textContent="Dream forming…";
+async function generateBatch() {
+    const status = document.getElementById('status');
+    const btn = document.getElementById('generateBtn');
+    const progress = document.getElementById('progressText');
+    const overlay = document.getElementById('loadingOverlay');
+    const grid = document.getElementById('resultsGrid');
+    const placeholder = document.getElementById('placeholder');
 
-const img=await puter.ai.txt2img(prompt);
-const grid=document.getElementById('resultsGrid');
-grid.innerHTML="";
-grid.appendChild(img);
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) {
+        status.textContent = "Please enter a prompt";
+        status.className = "text-red-400";
+        return;
+    }
 
-document.getElementById('status').textContent="Dream stabilized.";
-};
+    const num = parseInt(document.getElementById('numImages').value);
+    btn.disabled = true;
+    document.getElementById('btnText').textContent = `Generating ${num}...`;
+    overlay.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    grid.innerHTML = ''; // clear previous
+
+    status.textContent = `Generating ${num} image${num > 1 ? 's' : ''} in parallel...`;
+    status.className = "text-cyan-300";
+
+    const promises = Array.from({ length: num }, async (_, i) => {
+        const slot = createResultSlot(i + 1);
+        grid.appendChild(slot);
+
+        try {
+            const img = await generateSingleImage();
+            slot.innerHTML = '';
+            slot.appendChild(img);
+            addDownloadButton(slot, img.src);
+            addToHistory(img.src, prompt, num > 1 ? i + 1 : null);
+            return img;
+        } catch (err) {
+            slot.innerHTML = `<p class="text-pink-400 text-sm p-4">Failed: ${err.message || 'Error'}</p>`;
+            return null;
+        }
+    });
+
+    try {
+        await Promise.all(promises);
+        status.textContent = `Generated ${num} image${num > 1 ? 's' : ''} successfully`;
+        status.className = "text-emerald-400";
+    } catch (err) {
+        status.textContent = "Some generations failed – check individual results";
+        status.className = "text-yellow-400";
+    } finally {
+        btn.disabled = false;
+        document.getElementById('btnText').textContent = "Generate Images";
+        overlay.classList.add('hidden');
+    }
+}
+
+async function generateSingleImage() {
+    const prompt = document.getElementById('prompt').value.trim();
+    const negative = document.getElementById('negative').value.trim();
+    const model = document.getElementById('model').value;
+    const quality = document.getElementById('quality').value;
+    const width = parseInt(document.getElementById('width').value);
+    const height = parseInt(document.getElementById('height').value);
+    const testMode = document.getElementById('testMode').checked;
+
+    const options = { model, test_mode: testMode };
+    if (quality) options.quality = quality;
+    if (negative) options.negative_prompt = negative;
+
+    if (!isNaN(width) && !isNaN(height)) {
+        if (model.includes('gpt') || model.includes('dall') || model.includes('gemini') || model.includes('grok')) {
+            options.ratio = { w: width, h: height };
+        } else {
+            options.width = width;
+            options.height = height;
+        }
+    }
+
+    return await puter.ai.txt2img(prompt, options);
+}
+
+function createResultSlot(index) {
+    const div = document.createElement('div');
+    div.className = "relative bg-zinc-950/40 border border-zinc-800/30 rounded-2xl overflow-hidden min-h-[300px] flex items-center justify-center";
+    div.innerHTML = `
+        <div class="text-zinc-500 text-sm">Image ${index}</div>
+        <div class="absolute inset-0 flex items-center justify-center bg-black/40">
+            <div class="spinner w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full"></div>
+        </div>
+    `;
+    return div;
+}
+
+function addDownloadButton(container, src) {
+    const btn = document.createElement('a');
+    btn.href = src;
+    btn.download = `neural-forge-${Date.now()}.png`;
+    btn.className = "absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-black font-medium px-5 py-2.5 rounded-xl text-sm hover:bg-white transition-colors flex items-center gap-2 shadow-lg";
+    btn.innerHTML = '↓ Download';
+    container.appendChild(btn);
+
+    container.querySelector('img')?.addEventListener('click', () => {
+        const full = document.createElement('img');
+        full.src = src;
+        full.className = "max-h-[80vh] w-auto mx-auto rounded-3xl shadow-2xl";
+        const modal = document.createElement('div');
+        modal.className = "fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4";
+        modal.onclick = () => modal.remove();
+        modal.appendChild(full);
+        document.body.appendChild(modal);
+    });
+}
+
+function addToHistory(src, prompt, batchIndex = null) {
+    const container = document.getElementById('historyThumbs');
+    const thumb = document.createElement('img');
+    thumb.src = src;
+    thumb.className = "thumb w-20 h-20 object-cover rounded-2xl border border-zinc-700/50 cursor-pointer flex-shrink-0 snap-start";
+    thumb.title = batchIndex ? `${prompt} (#${batchIndex})` : prompt;
+    thumb.onclick = () => {
+        const grid = document.getElementById('resultsGrid');
+        grid.innerHTML = '';
+        const full = document.createElement('img');
+        full.src = src;
+        full.className = "max-h-[500px] w-auto mx-auto rounded-3xl";
+        const slot = document.createElement('div');
+        slot.className = "relative bg-zinc-950/40 border border-zinc-800/30 rounded-2xl overflow-hidden";
+        slot.appendChild(full);
+        addDownloadButton(slot, src);
+        grid.appendChild(slot);
+    };
+    container.prepend(thumb);
+    historyImages.unshift(src);
+    if (historyImages.length > 12) {
+        container.removeChild(container.lastChild);
+        historyImages.pop();
+    }
+}
+
+function clearHistory() {
+    document.getElementById('historyThumbs').innerHTML = '';
+    historyImages = [];
+}
+
+// Event listener
+document.getElementById('generateBtn').addEventListener('click', async () => {
+    if (!puter.auth.isSignedIn()) {
+        try {
+            await puter.auth.signIn();
+            document.getElementById('authStatus').textContent = "Signed in";
+            document.getElementById('authStatus').classList.add('text-cyan-300');
+        } catch {
+            document.getElementById('status').textContent = "Sign-in cancelled";
+            document.getElementById('status').className = "text-pink-400";
+            return;
+        }
+    }
+    generateBatch();
+});
 </script>
-
 </body>
 </html>
