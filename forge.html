@@ -10,34 +10,26 @@
     <style>
         :root {
             --bg-deep: #0a0e1f;
-            --bg-dream: #0f143a;
             --dream-cyan: #7df9ff;
             --dream-violet: #b993ff;
             --dream-magenta: #ff77c8;
-            --dream-pink: #ff9edb;
-            --text-soft: #e0e7ff;
-            --text-muted: #a5b4fc;
             --border-dream: rgba(125, 249, 255, 0.18);
             --glow-cyan: rgba(125, 249, 255, 0.35);
-            --glow-violet: rgba(185, 147, 255, 0.25);
-            --glow-magenta: rgba(255, 119, 200, 0.22);
         }
 
         body {
             background: radial-gradient(circle at 20% 15%, #1a1f4a 0%, #0f143a 30%, #0a0e1f 55%, #02030a 100%);
-            color: var(--text-soft);
+            color: #e0e7ff;
             font-family: 'Inter', system-ui, sans-serif;
             min-height: 100vh;
         }
 
         h1 {
-            font-family: 'Orbitron', 'Inter', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-weight: 700;
-            letter-spacing: 0.05em;
             background: linear-gradient(90deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             text-shadow: 0 0 20px var(--glow-cyan);
         }
 
@@ -45,277 +37,199 @@
             background: rgba(15, 20, 58, 0.45);
             border: 1px solid var(--border-dream);
             backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px var(--glow-cyan), inset 0 0 20px var(--glow-violet);
             border-radius: 1.75rem;
         }
 
         #generateBtn {
             background: linear-gradient(135deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
             color: #000c1a;
-            font-weight: 600;
+            font-weight: 700;
             box-shadow: 0 0 30px var(--glow-cyan);
-            transition: all 0.4s ease;
         }
 
-        #generateBtn:hover:not(:disabled) {
-            box-shadow: 0 0 50px var(--glow-magenta);
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-
-        .thumb:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 25px var(--glow-magenta);
-            animation: dreamPulse 3s ease-in-out infinite;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            border-color: var(--dream-cyan) !important;
-            box-shadow: 0 0 15px var(--glow-cyan) !important;
-            outline: none;
-        }
-
-        @keyframes dreamPulse {
-            0%, 100% { box-shadow: 0 0 0px var(--glow-cyan); }
-            50%      { box-shadow: 0 0 35px var(--glow-cyan), 0 0 20px var(--glow-violet); }
-        }
-
-        .animate-dream-pulse { animation: dreamPulse 8s ease-in-out infinite; }
         .spinner { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="min-h-screen">
-<div class="max-w-7xl mx-auto p-6">
-    <div class="flex justify-between items-center mb-8">
-        <nav class="flex justify-between items-center mb-10 border-b border-zinc-800/50 pb-6">
-    <div class="flex gap-6 items-center">
-        <a href="/" class="text-zinc-500 hover:text-zinc-200 text-sm font-medium transition-colors">Puter Studio</a>
-        <a href="/forge.html" class="text-cyan-400 text-sm font-bold border-b-2 border-cyan-400 pb-1">Neural Forge</a>
-    </div>
-    <div id="authStatus" class="text-[10px] px-3 py-1 glass-card rounded-full border text-emerald-400">HF API ACTIVE</div>
-</nav>
-
-<div class="flex justify-between items-center mb-8">
-    <div>
-        <h1 class="text-3xl font-semibold tracking-tight">Neural Forge</h1>
-        <p class="text-zinc-400 text-sm">Hugging Face Edition</p>
-    </div>
-</div>
-
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-5 glass-card p-8">
-            <form id="form" class="space-y-8">
-                <div>
-                    <label for="prompt" class="block text-sm font-medium text-zinc-400 mb-2">Prompt</label>
-                    <textarea id="prompt" rows="4" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none resize-none" placeholder="A serene mountain lake at golden hour..."></textarea>
-                </div>
-
-                <div>
-                    <label for="negative" class="block text-sm font-medium text-zinc-400 mb-2">Negative Prompt</label>
-                    <textarea id="negative" rows="2" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none resize-none" placeholder="blurry, low quality..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <label for="model" class="block text-sm font-medium text-zinc-400 mb-2">Model</label>
-                        <select id="model" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none">
-                            <option value="black-forest-labs/FLUX.1-schnell">FLUX.1 Schnell</option>
-                            <option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL Base</option>
-                            <option value="ByteDance/SDXL-Lightning">SDXL Lightning</option>
-                            <option value="Lykon/dreamshaper-8">DreamShaper 8</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="quality" class="block text-sm font-medium text-zinc-400 mb-2">Quality</label>
-                        <select id="quality" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none">
-                            <option value="medium">Medium</option>
-                            <option value="low">Low (Fast)</option>
-                            <option value="high">High (Slow)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-zinc-400 mb-3">Dimensions</label>
-                    <div class="flex gap-2 mb-4">
-                        <button type="button" onclick="setPreset(1024,1024)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700/50 rounded-2xl hover:bg-zinc-800/30 transition-colors">Square</button>
-                        <button type="button" onclick="setPreset(896,1344)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700/50 rounded-2xl hover:bg-zinc-800/30 transition-colors">Portrait</button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input id="width" type="number" value="1024" class="hidden">
-                        <input id="height" type="number" value="1024" class="hidden">
-                    </div>
-                </div>
-
-                <div>
-                    <label for="numImages" class="block text-sm font-medium text-zinc-400 mb-2">Number of Images</label>
-                    <select id="numImages" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-base focus:outline-none">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                    </select>
-                </div>
-
-                <button id="generateBtn" type="button" class="w-full py-5 rounded-2xl text-lg flex items-center justify-center gap-3 disabled:opacity-50">
-                    <span id="btnText">Generate Images</span>
-                </button>
-            </form>
-        </div>
-
-        <div class="lg:col-span-7 glass-card p-8 flex flex-col relative">
-            <div class="flex justify-between items-center mb-4">
-                <div id="status" class="text-sm text-zinc-400">Ready to forge</div>
-                <button type="button" onclick="clearGallery()" class="text-xs bg-zinc-800/50 hover:bg-zinc-700/50 px-3 py-1 rounded-full border border-zinc-700/50 transition-all">
-                    ✕ Clear Gallery
-                </button>
-            </div>
-
-            <div id="viewfinder" class="flex-1 bg-black/30 border border-zinc-800/30 rounded-3xl p-6 overflow-auto relative min-h-[400px]">
-                <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
-                <div id="placeholder" class="h-full flex items-center justify-center text-zinc-500 text-sm">Your creations will appear here</div>
-                
-                <div id="loadingOverlay" class="hidden absolute inset-0 bg-[#0f143a]/90 flex items-center justify-center z-10 rounded-3xl">
-                    <div class="text-center animate-dream-pulse">
-                        <div class="spinner w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
-                        <p class="mt-6 text-lg font-medium text-white">Forging Images...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="historySection" class="mt-8 border-t border-zinc-800/50 pt-6">
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-xs uppercase tracking-widest text-zinc-500">History (Local Session)</p>
-                    <button onclick="clearHistory()" class="text-xs text-zinc-500 hover:text-pink-400">Wipe All</button>
-                </div>
-                <div id="historyThumbs" class="flex gap-4 overflow-x-auto pb-4 min-h-[80px]">
-                    </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function setPreset(w, h) {
-        document.getElementById('width').value = w;
-        document.getElementById('height').value = h;
-    }
-
-    async function generateBatch() {
-        const status = document.getElementById('status');
-        const btn = document.getElementById('generateBtn');
-        const overlay = document.getElementById('loadingOverlay');
-        const grid = document.getElementById('resultsGrid');
-        const placeholder = document.getElementById('placeholder');
-
-        const prompt = document.getElementById('prompt').value.trim();
-        if (!prompt) {
-            status.textContent = "Please enter a prompt";
-            return;
-        }
-
-        const num = parseInt(document.getElementById('numImages').value);
-        btn.disabled = true;
-        overlay.classList.remove('hidden');
-        placeholder.classList.add('hidden');
-        grid.innerHTML = '';
-        status.textContent = `Generating ${num} images...`;
-
-        const promises = Array.from({ length: num }, async (_, i) => {
-            const slot = createResultSlot(i + 1);
-            grid.appendChild(slot);
-            try {
-                const imgUrl = await generateSingleImage();
-                slot.innerHTML = `<img src="${imgUrl}" class="w-full h-auto rounded-lg">`;
-                addDownloadButton(slot, imgUrl);
-                addToHistory(imgUrl);
-            } catch (err) {
-                slot.innerHTML = `<p class="text-pink-400 text-xs p-4">${err.message}</p>`;
-            }
-        });
-
-        await Promise.all(promises);
-        btn.disabled = false;
-        overlay.classList.add('hidden');
-        status.textContent = "Generation Complete";
-    }
-
-    async function generateSingleImage() {
-        const payload = {
-            prompt: document.getElementById('prompt').value.trim(),
-            negative: document.getElementById('negative').value.trim(),
-            model: document.getElementById('model').value,
-            width: parseInt(document.getElementById('width').value),
-            height: parseInt(document.getElementById('height').value),
-            guidance_scale: document.getElementById('quality').value === 'high' ? 9 : 7.5,
-            steps: document.getElementById('quality').value === 'high' ? 50 : 25
-        };
-
-        const response = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || "Generation Failed");
-        }
-
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
-    }
-
-    function createResultSlot(index) {
-        const div = document.createElement('div');
-        div.className = "relative bg-zinc-900 border border-zinc-800 rounded-2xl min-h-[250px] flex items-center justify-center";
-        div.innerHTML = `<div class="spinner w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full"></div>`;
-        return div;
-    }
-
-    function addDownloadButton(container, src) {
-        const btn = document.createElement('a');
-        btn.href = src;
-        btn.download = `neural-forge-${Date.now()}.png`;
-        btn.className = "absolute bottom-2 right-2 bg-white text-black px-3 py-1 rounded-lg text-xs font-bold shadow-lg";
-        btn.innerHTML = 'Download';
-        container.appendChild(btn);
-    }
-
-    function addToHistory(src) {
-        const container = document.getElementById('historyThumbs');
-        const img = document.createElement('img');
-        img.src = src;
-        img.className = "thumb w-20 h-20 object-cover rounded-xl border border-zinc-700/50 cursor-pointer flex-shrink-0 hover:border-cyan-400 transition-all";
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
         
-        img.onclick = () => {
+        <nav class="flex justify-between items-center mb-10 border-b border-zinc-800/50 pb-6">
+            <div class="flex gap-6 items-center">
+                <a href="/" class="text-zinc-500 hover:text-zinc-200 text-xs font-medium transition-colors">Puter Studio</a>
+                <a href="/forge.html" class="text-cyan-400 text-xs font-bold border-b-2 border-cyan-400 pb-1">Neural Forge</a>
+            </div>
+            <div class="text-[10px] px-3 py-1 glass-card rounded-full border text-emerald-400 border-emerald-500/30">HF API ACTIVE</div>
+        </nav>
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-semibold tracking-tight">Neural Forge</h1>
+            <p class="text-zinc-400 text-sm">Hugging Face Edition</p>
+        </div>
+
+        <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-5 glass-card p-6 md:p-8">
+                <form id="form" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">Prompt</label>
+                        <textarea id="prompt" rows="3" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-sm focus:outline-none resize-none" placeholder="A serene mountain lake..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">Model</label>
+                            <select id="model" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-xl px-4 py-3 text-xs outline-none">
+                                <option value="black-forest-labs/FLUX.1-schnell">FLUX.1 Schnell</option>
+                                <option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL Base</option>
+                                <option value="Lykon/dreamshaper-8">DreamShaper 8</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">Batch</label>
+                            <select id="numImages" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-xl px-4 py-3 text-xs outline-none">
+                                <option value="1">1 Image</option>
+                                <option value="2">2 Images</option>
+                                <option value="3" selected>3 Images</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="generateBtn" type="button" class="w-full py-5 rounded-2xl text-sm uppercase tracking-[0.2em] transition-all active:scale-95">
+                        Generate Images
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-7 glass-card p-6 md:p-8 flex flex-col relative">
+                <div class="flex justify-between items-center mb-4">
+                    <div id="status" class="text-[10px] uppercase font-bold text-zinc-500 tracking-widest">Ready to forge</div>
+                    <button type="button" onclick="clearGallery()" class="text-[10px] text-zinc-500 hover:text-white uppercase tracking-wider">✕ Clear Gallery</button>
+                </div>
+
+                <div id="viewfinder" class="flex-1 bg-black/30 border border-zinc-800/30 rounded-3xl p-4 overflow-auto relative min-h-[350px]">
+                    <div id="resultsGrid" class="grid grid-cols-1 gap-4"></div>
+                    <div id="placeholder" class="absolute inset-0 flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest">Forge is cold</div>
+                    
+                    <div id="loadingOverlay" class="hidden absolute inset-0 bg-[#0a0e1f]/90 flex items-center justify-center z-10 rounded-3xl">
+                        <div class="text-center">
+                            <div class="spinner w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
+                            <p class="mt-4 text-xs font-bold text-white uppercase tracking-widest">Forging...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="historySection" class="mt-6 pt-6 border-t border-zinc-800/50">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">Session History</p>
+                        <button onclick="clearHistory()" class="text-[10px] text-zinc-600 hover:text-pink-400 uppercase">Wipe</button>
+                    </div>
+                    <div id="historyThumbs" class="flex gap-3 overflow-x-auto pb-2 min-h-[60px]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setPreset(w, h) {
+            document.getElementById('width').value = w;
+            document.getElementById('height').value = h;
+        }
+
+        async function generateBatch() {
+            const status = document.getElementById('status');
+            const btn = document.getElementById('generateBtn');
+            const overlay = document.getElementById('loadingOverlay');
             const grid = document.getElementById('resultsGrid');
             const placeholder = document.getElementById('placeholder');
-            grid.innerHTML = ''; // Clear grid
-            const slot = createResultSlot(1);
-            grid.appendChild(slot);
-            slot.innerHTML = `<img src="${src}" class="w-full h-auto rounded-lg">`;
-            addDownloadButton(slot, src);
+            const prompt = document.getElementById('prompt').value.trim();
+
+            if (!prompt) { status.textContent = "Enter a prompt"; return; }
+
+            const num = parseInt(document.getElementById('numImages').value);
+            btn.disabled = true;
+            overlay.classList.remove('hidden');
             placeholder.classList.add('hidden');
-        };
-        
-        container.prepend(img);
-    }
+            grid.innerHTML = '';
+            status.textContent = `Forging ${num} images...`;
 
-    function clearGallery() {
-        document.getElementById('resultsGrid').innerHTML = '';
-        document.getElementById('placeholder').classList.remove('hidden');
-        document.getElementById('status').textContent = "Gallery cleared";
-    }
+            const promises = Array.from({ length: num }, async (_, i) => {
+                const slot = createResultSlot();
+                grid.appendChild(slot);
+                try {
+                    const imgUrl = await generateSingleImage(prompt);
+                    slot.innerHTML = `<img src="${imgUrl}" class="w-full h-auto rounded-xl">`;
+                    addDownloadButton(slot, imgUrl);
+                    addToHistory(imgUrl);
+                } catch (err) {
+                    slot.innerHTML = `<p class="text-pink-400 text-[10px] p-4">${err.message}</p>`;
+                }
+            });
 
-    function clearHistory() {
-        document.getElementById('historyThumbs').innerHTML = '';
-        document.getElementById('status').textContent = "History wiped";
-    }
+            await Promise.all(promises);
+            btn.disabled = false;
+            overlay.classList.add('hidden');
+            status.textContent = "Forge Complete";
+        }
 
-    document.getElementById('generateBtn').addEventListener('click', generateBatch);
-</script>
+        async function generateSingleImage(prompt) {
+            const payload = {
+                prompt: prompt,
+                model: document.getElementById('model').value,
+                width: 1024,
+                height: 1024
+            };
+
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Failed");
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+        }
+
+        function createResultSlot() {
+            const div = document.createElement('div');
+            div.className = "relative bg-zinc-900/50 border border-zinc-800 rounded-2xl min-h-[200px] flex items-center justify-center overflow-hidden";
+            div.innerHTML = `<div class="spinner w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full"></div>`;
+            return div;
+        }
+
+        function addDownloadButton(container, src) {
+            const btn = document.createElement('a');
+            btn.href = src; btn.download = `forge-${Date.now()}.png`;
+            btn.className = "absolute bottom-3 right-3 bg-white text-black px-3 py-1 rounded-lg text-[10px] font-bold uppercase shadow-lg";
+            btn.innerHTML = 'Save';
+            container.appendChild(btn);
+        }
+
+        function addToHistory(src) {
+            const container = document.getElementById('historyThumbs');
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = "w-14 h-14 object-cover rounded-xl border border-zinc-800 cursor-pointer flex-shrink-0 hover:border-cyan-400 transition-all";
+            img.onclick = () => {
+                const grid = document.getElementById('resultsGrid');
+                grid.innerHTML = `<div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-2"><img src="${src}" class="w-full rounded-xl"></div>`;
+                document.getElementById('placeholder').classList.add('hidden');
+            };
+            container.prepend(img);
+        }
+
+        function clearGallery() {
+            document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('placeholder').classList.remove('hidden');
+            document.getElementById('status').textContent = "Ready";
+        }
+
+        function clearHistory() {
+            document.getElementById('historyThumbs').innerHTML = '';
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', generateBatch);
+    </script>
 </body>
 </html>
