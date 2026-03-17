@@ -157,27 +157,38 @@
         </div>
 
         <div class="lg:col-span-7 glass-card p-8 flex flex-col relative">
-            <div id="status" class="text-sm h-6 mb-4 text-zinc-400"></div>
-            <div id="viewfinder" class="flex-1 bg-black/30 border border-zinc-800/30 rounded-3xl p-6 overflow-auto relative">
+            <div class="flex justify-between items-center mb-4">
+                <div id="status" class="text-sm text-zinc-400">Ready to forge</div>
+                <button type="button" onclick="clearGallery()" class="text-xs bg-zinc-800/50 hover:bg-zinc-700/50 px-3 py-1 rounded-full border border-zinc-700/50 transition-all">
+                    ✕ Clear Gallery
+                </button>
+            </div>
+
+            <div id="viewfinder" class="flex-1 bg-black/30 border border-zinc-800/30 rounded-3xl p-6 overflow-auto relative min-h-[400px]">
                 <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
                 <div id="placeholder" class="h-full flex items-center justify-center text-zinc-500 text-sm">Your creations will appear here</div>
-                <div id="loadingOverlay" class="hidden absolute inset-0 bg-[#0f143a]/80 flex items-center justify-center z-10 rounded-3xl">
+                
+                <div id="loadingOverlay" class="hidden absolute inset-0 bg-[#0f143a]/90 flex items-center justify-center z-10 rounded-3xl">
                     <div class="text-center animate-dream-pulse">
                         <div class="spinner w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
                         <p class="mt-6 text-lg font-medium text-white">Forging Images...</p>
                     </div>
                 </div>
             </div>
-            <div id="history" class="mt-8">
-                <div id="historyThumbs" class="flex gap-4 overflow-x-auto pb-4"></div>
+
+            <div id="historySection" class="mt-8 border-t border-zinc-800/50 pt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-xs uppercase tracking-widest text-zinc-500">History (Local Session)</p>
+                    <button onclick="clearHistory()" class="text-xs text-zinc-500 hover:text-pink-400">Wipe All</button>
+                </div>
+                <div id="historyThumbs" class="flex gap-4 overflow-x-auto pb-4 min-h-[80px]">
+                    </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let historyImages = [];
-
     function setPreset(w, h) {
         document.getElementById('width').value = w;
         document.getElementById('height').value = h;
@@ -259,7 +270,7 @@
         const btn = document.createElement('a');
         btn.href = src;
         btn.download = `neural-forge-${Date.now()}.png`;
-        btn.className = "absolute bottom-2 right-2 bg-white text-black px-3 py-1 rounded-lg text-xs font-bold";
+        btn.className = "absolute bottom-2 right-2 bg-white text-black px-3 py-1 rounded-lg text-xs font-bold shadow-lg";
         btn.innerHTML = 'Download';
         container.appendChild(btn);
     }
@@ -268,9 +279,31 @@
         const container = document.getElementById('historyThumbs');
         const img = document.createElement('img');
         img.src = src;
-        img.className = "thumb w-16 h-16 object-cover rounded-xl border border-zinc-700 flex-shrink-0 cursor-pointer";
-        img.onclick = () => window.open(src, '_blank');
+        img.className = "thumb w-20 h-20 object-cover rounded-xl border border-zinc-700/50 cursor-pointer flex-shrink-0 hover:border-cyan-400 transition-all";
+        
+        img.onclick = () => {
+            const grid = document.getElementById('resultsGrid');
+            const placeholder = document.getElementById('placeholder');
+            grid.innerHTML = ''; // Clear grid
+            const slot = createResultSlot(1);
+            grid.appendChild(slot);
+            slot.innerHTML = `<img src="${src}" class="w-full h-auto rounded-lg">`;
+            addDownloadButton(slot, src);
+            placeholder.classList.add('hidden');
+        };
+        
         container.prepend(img);
+    }
+
+    function clearGallery() {
+        document.getElementById('resultsGrid').innerHTML = '';
+        document.getElementById('placeholder').classList.remove('hidden');
+        document.getElementById('status').textContent = "Gallery cleared";
+    }
+
+    function clearHistory() {
+        document.getElementById('historyThumbs').innerHTML = '';
+        document.getElementById('status').textContent = "History wiped";
     }
 
     document.getElementById('generateBtn').addEventListener('click', generateBatch);
