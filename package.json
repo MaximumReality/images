@@ -1,7 +1,12 @@
 {
-  "name": "neural-forge",
+  "name": "neural-forge-api",
   "version": "1.0.0",
-  "scripts": {
-    "start": "next start"
+  "description": "API Backend for Neural Forge",
+  "main": "api/generate.js",
+  "dependencies": {
+    "node-fetch": "^3.3.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
