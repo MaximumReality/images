@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Forge • AI Image Studio</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .thumb:hover { transform: scale(1.05); box-shadow: 0 0 0 3px rgb(59 130 246); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen">
+<div class="max-w-7xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-semibold tracking-tight">Neural Forge</h1>
+            <p class="text-zinc-400 text-sm">Powered by Puter AI • Professional Image Studio</p>
+        </div>
+        <div id="authStatus" class="text-xs px-4 py-2 bg-zinc-900 rounded-full border border-zinc-700">Not signed in</div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Controls -->
+        <div class="lg:col-span-5 bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+            <form id="form" class="space-y-8">
+                <div>
+                    <label for="prompt" class="block text-sm font-medium text-zinc-400 mb-2">Prompt</label>
+                    <textarea id="prompt" rows="4" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 text-base focus:outline-none focus:border-blue-500 resize-none" placeholder="A serene mountain lake at golden hour, photorealistic, cinematic lighting..."></textarea>
+                </div>
+
+                <div>
+                    <label for="negative" class="block text-sm font-medium text-zinc-400 mb-2">Negative Prompt (optional)</label>
+                    <textarea id="negative" rows="2" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 text-base focus:outline-none focus:border-blue-500 resize-none" placeholder="blurry, low quality, artifacts, deformed..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label for="model" class="block text-sm font-medium text-zinc-400 mb-2">Model</label>
+                        <select id="model" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 text-base focus:outline-none focus:border-blue-500"></select>
+                    </div>
+                    <div>
+                        <label for="quality" class="block text-sm font-medium text-zinc-400 mb-2">Quality</label>
+                        <select id="quality" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 text-base focus:outline-none focus:border-blue-500">
+                            <option value="">Default</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="hd">HD</option>
+                            <option value="standard">Standard</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-zinc-400 mb-3">Dimensions</label>
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" onclick="setPreset(1024,1024)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700 rounded-2xl hover:bg-zinc-800 transition-colors">Square</button>
+                        <button type="button" onclick="setPreset(896,1344)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700 rounded-2xl hover:bg-zinc-800 transition-colors">Portrait</button>
+                        <button type="button" onclick="setPreset(1344,896)" class="flex-1 py-2.5 text-sm font-medium border border-zinc-700 rounded-2xl hover:bg-zinc-800 transition-colors">Landscape</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-zinc-500">Width</label>
+                            <input id="width" type="number" min="256" max="2048" step="64" value="1024" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-3 text-base">
+                        </div>
+                        <div>
+                            <label class="text-xs text-zinc-500">Height</label>
+                            <input id="height" type="number" min="256" max="2048" step="64" value="1024" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-3 text-base">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label for="numImages" class="block text-sm font-medium text-zinc-400 mb-2">Number of Images</label>
+                        <select id="numImages" class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 text-base focus:outline-none focus:border-blue-500">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-3 self-end pb-4">
+                        <input type="checkbox" id="testMode" class="w-5 h-5 accent-blue-500">
+                        <label for="testMode" class="text-sm text-zinc-400">Test Mode (free preview)</label>
+                    </div>
+                </div>
+
+                <button id="generateBtn" type="button"
+                        class="w-full bg-blue-600 hover:bg-blue-500 transition-colors text-white font-semibold py-5 rounded-2xl text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="btnText">Generate Images</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="lg:col-span-7 bg-zinc-900 border border-zinc-800 rounded-3xl p-8 flex flex-col">
+            <div id="status" role="alert" aria-live="polite" class="text-sm h-6 mb-4 text-zinc-400"></div>
+
+            <div id="viewfinder" class="flex-1 bg-black border border-zinc-800 rounded-3xl p-6 overflow-auto">
+                <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+                <div id="placeholder" class="h-full flex items-center justify-center text-zinc-500 text-sm">Your images will appear here</div>
+                <div id="loadingOverlay" class="hidden absolute inset-0 bg-black/70 flex items-center justify-center z-10">
+                    <div class="text-center">
+                        <div class="spinner w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                        <p class="mt-6 text-lg font-medium">Generating images…</p>
+                        <p id="progressText" class="mt-2 text-sm text-zinc-400">Please wait 10–60 seconds depending on model & count</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="history" class="mt-8">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs uppercase tracking-widest text-zinc-500">Recent Generations</p>
+                    <button onclick="clearHistory()" class="text-xs text-zinc-400 hover:text-white">Clear</button>
+                </div>
+                <div id="historyThumbs" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Models list (real ones from Puter 2026 docs)
+const models = [
+    { value: "gpt-image-1.5", label: "GPT Image 1.5 (OpenAI)" },
+    { value: "dall-e-3", label: "DALL·E 3" },
+    { value: "black-forest-labs/FLUX.1-schnell", label: "FLUX.1 Schnell (Fast)" },
+    { value: "stabilityai/stable-diffusion-3-medium", label: "Stable Diffusion 3 Medium" },
+    { value: "grok-2-image", label: "Grok Image (xAI)" },
+    { value: "gemini-2.5-flash-image-preview", label: "Gemini 2.5 Flash (Nano Banana)" },
+    { value: "google/imagen-4.0-preview", label: "Imagen 4 Preview" }
+];
+
+let historyImages = [];
+
+// Populate models
+const modelSelect = document.getElementById('model');
+models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.value;
+    opt.textContent = m.label;
+    modelSelect.appendChild(opt);
+});
+
+function setPreset(w, h) {
+    document.getElementById('width').value = w;
+    document.getElementById('height').value = h;
+}
+
+async function generateBatch() {
+    const status = document.getElementById('status');
+    const btn = document.getElementById('generateBtn');
+    const progress = document.getElementById('progressText');
+    const overlay = document.getElementById('loadingOverlay');
+    const grid = document.getElementById('resultsGrid');
+    const placeholder = document.getElementById('placeholder');
+
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) {
+        status.textContent = "Please enter a prompt";
+        status.className = "text-red-400";
+        return;
+    }
+
+    const num = parseInt(document.getElementById('numImages').value);
+    btn.disabled = true;
+    document.getElementById('btnText').textContent = `Generating ${num}...`;
+    overlay.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    grid.innerHTML = ''; // clear previous
+
+    status.textContent = `Generating ${num} image${num > 1 ? 's' : ''} in parallel...`;
+    status.className = "text-blue-400";
+
+    const promises = Array.from({ length: num }, async (_, i) => {
+        const slot = createResultSlot(i + 1);
+        grid.appendChild(slot);
+
+        try {
+            const img = await generateSingleImage();
+            slot.innerHTML = '';
+            slot.appendChild(img);
+            addDownloadButton(slot, img.src);
+            addToHistory(img.src, prompt, num > 1 ? i + 1 : null);
+            return img;
+        } catch (err) {
+            slot.innerHTML = `<p class="text-red-400 text-sm p-4">Failed: ${err.message || 'Error'}</p>`;
+            return null;
+        }
+    });
+
+    try {
+        await Promise.all(promises);
+        status.textContent = `Generated ${num} image${num > 1 ? 's' : ''} successfully`;
+        status.className = "text-emerald-400";
+    } catch (err) {
+        status.textContent = "Some generations failed – check individual results";
+        status.className = "text-yellow-400";
+    } finally {
+        btn.disabled = false;
+        document.getElementById('btnText').textContent = "Generate Images";
+        overlay.classList.add('hidden');
+    }
+}
+
+async function generateSingleImage() {
+    const prompt = document.getElementById('prompt').value.trim();
+    const negative = document.getElementById('negative').value.trim();
+    const model = document.getElementById('model').value;
+    const quality = document.getElementById('quality').value;
+    const width = parseInt(document.getElementById('width').value);
+    const height = parseInt(document.getElementById('height').value);
+    const testMode = document.getElementById('testMode').checked;
+
+    const options = { model, test_mode: testMode };
+    if (quality) options.quality = quality;
+    if (negative) options.negative_prompt = negative;
+
+    // Dimension handling (provider-specific)
+    if (!isNaN(width) && !isNaN(height)) {
+        if (model.includes('gpt') || model.includes('dall') || model.includes('gemini') || model.includes('grok')) {
+            options.ratio = { w: width, h: height };
+        } else {
+            options.width = width;
+            options.height = height;
+        }
+    }
+
+    return await puter.ai.txt2img(prompt, options);
+}
+
+function createResultSlot(index) {
+    const div = document.createElement('div');
+    div.className = "relative bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden min-h-[300px] flex items-center justify-center";
+    div.innerHTML = `
+        <div class="text-zinc-500 text-sm">Image ${index}</div>
+        <div class="absolute inset-0 flex items-center justify-center bg-black/40">
+            <div class="spinner w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        </div>
+    `;
+    return div;
+}
+
+function addDownloadButton(container, src) {
+    const btn = document.createElement('a');
+    btn.href = src;
+    btn.download = `neural-forge-${Date.now()}.png`;
+    btn.className = "absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-black font-medium px-5 py-2.5 rounded-xl text-sm hover:bg-white transition-colors flex items-center gap-2 shadow-lg";
+    btn.innerHTML = '↓ Download';
+    container.appendChild(btn);
+
+    // Click to enlarge
+    container.querySelector('img')?.addEventListener('click', () => {
+        const full = document.createElement('img');
+        full.src = src;
+        full.className = "max-h-[80vh] w-auto mx-auto rounded-3xl shadow-2xl";
+        const modal = document.createElement('div');
+        modal.className = "fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4";
+        modal.onclick = () => modal.remove();
+        modal.appendChild(full);
+        document.body.appendChild(modal);
+    });
+}
+
+function addToHistory(src, prompt, batchIndex = null) {
+    const container = document.getElementById('historyThumbs');
+    const thumb = document.createElement('img');
+    thumb.src = src;
+    thumb.className = "thumb w-20 h-20 object-cover rounded-2xl border border-zinc-700 cursor-pointer flex-shrink-0 snap-start";
+    thumb.title = batchIndex ? `${prompt} (#${batchIndex})` : prompt;
+    thumb.onclick = () => {
+        const grid = document.getElementById('resultsGrid');
+        grid.innerHTML = '';
+        const full = document.createElement('img');
+        full.src = src;
+        full.className = "max-h-[500px] w-auto mx-auto rounded-3xl";
+        const slot = document.createElement('div');
+        slot.className = "relative bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden";
+        slot.appendChild(full);
+        addDownloadButton(slot, src);
+        grid.appendChild(slot);
+    };
+    container.prepend(thumb);
+    historyImages.unshift(src);
+    if (historyImages.length > 12) {
+        container.removeChild(container.lastChild);
+        historyImages.pop();
+    }
+}
+
+function clearHistory() {
+    document.getElementById('historyThumbs').innerHTML = '';
+    historyImages = [];
+}
+
+// Event listener
+document.getElementById('generateBtn').addEventListener('click', async () => {
+    if (!puter.auth.isSignedIn()) {
+        try {
+            await puter.auth.signIn();
+            document.getElementById('authStatus').textContent = "Signed in";
+        } catch {
+            document.getElementById('status').textContent = "Sign-in cancelled";
+            document.getElementById('status').className = "text-red-400";
+            return;
+        }
+    }
+    generateBatch();
+});
+</script>
+</body>
+</html>
