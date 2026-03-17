@@ -1,0 +1,153 @@
+<!DOCTYPE html><html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Forge • Puter Edition</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0e1f;
+            --dream-cyan: #7df9ff;
+            --dream-violet: #b993ff;
+            --dream-magenta: #ff77c8;
+            --border-dream: rgba(125, 249, 255, 0.18);
+            --glow-cyan: rgba(125, 249, 255, 0.35);
+        }
+        body {
+            background: radial-gradient(circle at 20% 15%, #1a1f4a 0%, #0f143a 30%, #0a0e1f 55%, #02030a 100%);
+            color: #e0e7ff;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(90deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-card {
+            background: rgba(15, 20, 58, 0.45);
+            border: 1px solid var(--border-dream);
+            backdrop-filter: blur(12px);
+            border-radius: 1.75rem;
+        }
+        #generateBtn {
+            background: linear-gradient(135deg, var(--dream-cyan), var(--dream-violet), var(--dream-magenta));
+            color: #000c1a;
+            font-weight: 700;
+        }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <nav class="flex justify-between items-center mb-10 border-b border-zinc-800/50 pb-6">
+            <div class="flex gap-6 items-center">
+                <a href="/" class="text-cyan-400 text-xs font-bold border-b-2 border-cyan-400 pb-1 uppercase tracking-widest">Puter Studio</a>
+                <a href="/forge.html" class="text-zinc-500 hover:text-zinc-200 text-xs font-medium transition-colors uppercase tracking-widest">HF Studio</a>
+            </div>
+            <div id="puterStatus" class="text-[10px] px-3 py-1 glass-card rounded-full border text-blue-400 border-blue-500/30 font-bold">PUTER ENGINE</div>
+        </nav>
+
+        <header class="mb-8">
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Neural Forge</h1>
+            <p class="text-zinc-400 text-sm">Puter-Powered Generations</p>
+        </header>
+
+        <main class="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-5 glass-card p-6 md:p-8">
+                <form class="space-y-6">
+                    <div class="relative">
+                        <label class="block text-[10px] font-bold text-zinc-500 uppercase mb-2 tracking-widest">Prompt</label>
+                        <textarea id="prompt" rows="4" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-cyan-400 resize-none" placeholder="Enter vision..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Model</label>
+                            <select id="model" class="w-full bg-zinc-950/40 border border-zinc-700/50 rounded-xl px-4 py-3 text-xs outline-none">
+                                <option value="black-forest-labs/FLUX.1-schnell">FLUX Schnell</option>
+                                <option value="dall-e-3">DALL·E 3</option>
+                                <option value="gpt-image-1.5">GPT Image 1.5</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 pt-6">
+                            <input type="checkbox" id="testMode" class="w-4 h-4 accent-cyan-400">
+                            <label for="testMode" class="text-[10px] font-bold text-zinc-400 uppercase">Free Test</label>
+                        </div>
+                    </div>
+
+                    <button id="generateBtn" type="button" onclick="checkAuthAndGenerate()" class="w-full py-5 rounded-2xl text-xs font-black uppercase tracking-[0.3em] transition-all active:scale-95 shadow-xl">
+                        Generate with Puter
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-7 glass-card p-6 md:p-8 flex flex-col relative">
+                <div id="status" class="text-[10px] uppercase font-bold text-zinc-500 tracking-widest mb-4">Ready</div>
+                
+                <div id="viewfinder" class="flex-1 bg-black/40 border border-zinc-800 rounded-3xl flex items-center justify-center relative overflow-hidden min-h-[350px]">
+                    <div id="placeholder" class="text-zinc-600 text-[10px] uppercase tracking-widest">Viewport Idle</div>
+                    <div id="loadingOverlay" class="hidden absolute inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-10">
+                        <div class="text-center">
+                            <div class="spinner w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full mx-auto"></div>
+                            <p class="mt-4 text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Puter is Forging...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="history" class="mt-8 border-t border-zinc-800/50 pt-6">
+                    <div id="historyThumbs" class="flex gap-4 overflow-x-auto pb-4"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+    async function checkAuthAndGenerate() {
+        const prompt = document.getElementById('prompt').value.trim();
+        if (!prompt) return;
+
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        document.getElementById('status').textContent = "GENERATING...";
+
+        try {
+            if (!puter.auth.isSignedIn()) { await puter.auth.signIn(); }
+            
+            const imgElement = await puter.ai.txt2img(prompt, {
+                model: document.getElementById('model').value,
+                test_mode: document.getElementById('testMode').checked
+            });
+
+            const viewfinder = document.getElementById('viewfinder');
+            viewfinder.innerHTML = '';
+            imgElement.className = "max-h-full w-auto rounded-xl mx-auto shadow-2xl";
+            viewfinder.appendChild(imgElement);
+
+            // Add Save Button
+            const dl = document.createElement('a');
+            dl.href = imgElement.src; dl.download = 'puter-gen.png';
+            dl.className = "absolute bottom-4 right-4 bg-white text-black text-[10px] font-bold px-3 py-2 rounded-lg";
+            dl.innerText = 'SAVE';
+            viewfinder.appendChild(dl);
+
+            // Add to history
+            const thumb = document.createElement('img');
+            thumb.src = imgElement.src;
+            thumb.className = "w-14 h-14 object-cover rounded-xl border border-zinc-800 cursor-pointer";
+            thumb.onclick = () => { viewfinder.innerHTML = `<img src="${thumb.src}" class="max-h-full rounded-xl mx-auto">`; };
+            document.getElementById('historyThumbs').prepend(thumb);
+
+            document.getElementById('status').textContent = "COMPLETE";
+        } catch (e) {
+            document.getElementById('status').textContent = "ERROR: CHECK CREDITS";
+        } finally {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+    }
+</script>
+</body>
+</html>
