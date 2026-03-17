@@ -451,7 +451,7 @@
         <button class="action-btn" onclick="clearAll()">CLEAR</button>
         <button class="action-btn ai-btn" onclick="aiPolish()">✦ AI POLISH</button>
         <button class="action-btn primary" onclick="copyPrompt()">COPY</button>
-      </div>
+        <button class="action-btn" style="border-color: var(--mr); color: var(--mr);" onclick="sendToNeuralForge()">🚀 SEND TO FORGE</button>
     </div>
     <div class="prompt-display" id="prompt-display">
       <span class="prompt-placeholder">select tags above — your prompt assembles here in real time…</span>
@@ -860,13 +860,38 @@ async function aiPolish() {
 // COPY / CLEAR
 // ═══════════════════════════════════════════════════════
 function copyPrompt() {
-  const display=document.getElementById('prompt-display');
-  const text=display.innerText||display.textContent;
-  if (!text||text.includes('select tags')) return;
-  navigator.clipboard.writeText(text).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);});
-  const toast=document.getElementById('toast'); toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1500);
-  for(let i=0;i<5;i++) setTimeout(()=>sparkle(Math.random()*window.innerWidth,window.innerHeight-250),i*80);
+  const display = document.getElementById('prompt-display');
+  const text = display.innerText || display.textContent;
+  if (!text || text.includes('select tags')) return;
+
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1500);
+
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => sparkle(Math.random() * window.innerWidth, window.innerHeight - 250), i * 80);
+  }
+} // <--- Added this bracket to close copyPrompt
+
+function sendToNeuralForge() {
+  const display = document.getElementById('prompt-display');
+  const text = display.innerText || display.textContent;
+  if (!text || text.includes('select tags')) return;
+  
+  const encodedPrompt = encodeURIComponent(text);
+  // This opens your other app and passes the prompt in the URL!
+  window.open(`https://maximumreality.github.io/images/forge.html?prompt=${encodedPrompt}`, '_blank');
 }
+
 function clearAll() {
   selectedTags={subject:[],style:[],mood:[],tech:[],neg:[]};
   customTags={subject:[],style:[],mood:[],tech:[],neg:[]};
