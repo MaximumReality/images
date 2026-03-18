@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Forge • HF Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg:        #07080f;
+            --surface:   #0d0f1c;
+            --surface2:  #121526;
+            --border:    rgba(255,255,255,0.07);
+            --border-hi: rgba(125,249,255,0.25);
+            --cyan:      #7df9ff;
+            --violet:    #b993ff;
+            --magenta:   #ff77c8;
+            --forge:     #ff6a2f;
+            --text:      #dde2f0;
+            --muted:     #525870;
+            --glow-cyan: rgba(125,249,255,0.18);
+            --glow-vio:  rgba(185,147,255,0.18);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Atmospheric background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 15% 10%, rgba(185,147,255,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 35% at 85% 80%, rgba(125,249,255,0.05) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,106,47,0.03) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Noise texture */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .wrap { position: relative; z-index: 1; }
+
+        /* NAV */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7,8,15,0.85);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-links { display: flex; gap: 2px; }
+        .nav-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            color: var(--muted);
+            transition: color 0.2s, background 0.2s;
+            border: 1px solid transparent;
+        }
+        .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+        .nav-link.active {
+            color: var(--cyan);
+            border-color: rgba(125,249,255,0.2);
+            background: rgba(125,249,255,0.05);
+        }
+
+        .engine-badge {
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(52,211,153,0.3);
+            color: #34d399;
+            background: rgba(52,211,153,0.06);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .engine-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #34d399;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+        /* HEADER */
+        .page-header {
+            padding: 36px 24px 24px;
+        }
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 28px;
+            letter-spacing: -0.02em;
+            background: linear-gradient(100deg, var(--cyan) 0%, var(--violet) 50%, var(--magenta) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+        .logo-sub {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            margin-top: 6px;
+        }
+
+        /* LAYOUT */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2px;
+            padding: 0 2px 2px;
+        }
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* PANELS */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-inner { padding: 24px; }
+
+        .field-label {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        textarea, input[type=text], input[type=number], select {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -webkit-appearance: none;
+        }
+        textarea:focus, input:focus, select:focus {
+            border-color: var(--border-hi);
+            box-shadow: 0 0 0 3px var(--glow-cyan);
+        }
+        textarea { resize: none; }
+        select { cursor: pointer; }
+
+        /* MODEL SELECT — with family groups */
+        .model-family-label {
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 8px 14px 4px;
+            pointer-events: none;
+        }
+
+        /* ASPECT RATIO BUTTONS */
+        .ratio-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .ratio-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+            padding: 10px 4px 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .ratio-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+        .ratio-btn.active {
+            background: rgba(125,249,255,0.08);
+            border-color: var(--border-hi);
+            color: var(--cyan);
+        }
+        .ratio-icon {
+            background: currentColor;
+            border-radius: 2px;
+            opacity: 0.6;
+        }
+
+        /* BATCH PILLS */
+        .batch-grid {
+            display: flex;
+            gap: 6px;
+        }
+        .batch-btn {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+        .batch-btn:hover { color: var(--text); }
+        .batch-btn.active {
+            background: rgba(185,147,255,0.1);
+            border-color: rgba(185,147,255,0.3);
+            color: var(--violet);
+        }
+
+        /* SEED ROW */
+        .seed-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: end;
+        }
+        .seed-dice {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--muted);
+            font-size: 16px;
+            padding: 11px 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+            line-height: 1;
+        }
+        .seed-dice:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+        /* COLLAPSIBLE ADVANCED */
+        .advanced-toggle {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0;
+            transition: color 0.2s;
+            width: 100%;
+        }
+        .advanced-toggle:hover { color: var(--text); }
+        .advanced-toggle .chevron {
+            transition: transform 0.2s;
+            font-size: 8px;
+        }
+        .advanced-toggle.open .chevron { transform: rotate(90deg); }
+        .advanced-body {
+            display: none;
+            margin-top: 14px;
+        }
+        .advanced-body.open { display: block; }
+
+        /* DIVIDER */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        /* FORGE BUTTON */
+        #forgeBtn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--cyan), var(--violet), var(--magenta));
+            color: #04050c;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 0 30px rgba(125,249,255,0.15), 0 0 60px rgba(185,147,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        #forgeBtn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #forgeBtn:hover::after { opacity: 1; }
+        #forgeBtn:hover { box-shadow: 0 0 40px rgba(125,249,255,0.25), 0 0 80px rgba(185,147,255,0.15); }
+        #forgeBtn:active { transform: scale(0.98); }
+        #forgeBtn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* RIGHT PANEL */
+        .output-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .output-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #statusText {
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        #statusText.active { color: var(--cyan); }
+        #statusText.error { color: var(--magenta); }
+        #statusText.done { color: #34d399; }
+
+        .reset-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: color 0.15s;
+            padding: 4px 8px;
+        }
+        .reset-btn:hover { color: var(--text); }
+
+        /* VIEWFINDER */
+        #viewfinder {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            min-height: 400px;
+            position: relative;
+        }
+
+        #resultsGrid {
+            display: grid;
+            gap: 12px;
+        }
+        #resultsGrid.cols-1 { grid-template-columns: 1fr; }
+        #resultsGrid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        #resultsGrid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        #resultsGrid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+
+        #placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--muted);
+        }
+        .placeholder-icon {
+            width: 48px; height: 48px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0.4;
+        }
+        .placeholder-text {
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0.4;
+        }
+
+        /* LOADING OVERLAY */
+        #loadingOverlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(7,8,15,0.92);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        #loadingOverlay.show { display: flex; }
+        .forge-loader {
+            text-align: center;
+        }
+        .forge-ring {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            border-top-color: var(--cyan);
+            border-right-color: var(--violet);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            box-shadow: 0 0 20px var(--glow-cyan);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .forge-label {
+            margin-top: 18px;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            animation: flicker 2s ease-in-out infinite;
+        }
+        @keyframes flicker { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+        /* IMAGE SLOTS */
+        .img-slot {
+            position: relative;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s;
+        }
+        .img-slot:hover { border-color: var(--border-hi); }
+        .img-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 11px;
+        }
+        .slot-spinner {
+            width: 24px; height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--violet);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .slot-error {
+            font-size: 10px;
+            color: var(--magenta);
+            text-align: center;
+            padding: 16px;
+            letter-spacing: 0.05em;
+        }
+
+        /* IMAGE ACTIONS (hover) */
+        .img-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background: linear-gradient(transparent, rgba(7,8,15,0.9));
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .img-slot:hover .img-actions { opacity: 1; }
+        .img-action-btn {
+            flex: 1;
+            background: rgba(13,15,28,0.9);
+            border: 1px solid var(--border-hi);
+            border-radius: 6px;
+            color: var(--cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 6px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.15s;
+            display: block;
+        }
+        .img-action-btn:hover { background: rgba(125,249,255,0.12); }
+
+        /* PROMPT CHIP on image */
+        .img-prompt-chip {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            background: rgba(7,8,15,0.85);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 9px;
+            color: var(--muted);
+            opacity: 0;
+            transition: opacity 0.2s;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .img-slot:hover .img-prompt-chip { opacity: 1; }
+
+        /* HISTORY */
+        .history-bar {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+        }
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .history-title {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        #historyThumbs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            min-height: 52px;
+        }
+        #historyThumbs::-webkit-scrollbar { height: 3px; }
+        #historyThumbs::-webkit-scrollbar-track { background: var(--surface); }
+        #historyThumbs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .history-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+        .history-thumb:hover {
+            border-color: var(--border-hi);
+            transform: scale(1.08);
+        }
+
+        /* TOAST */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--surface2);
+            border: 1px solid var(--border-hi);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* SECTION SPACING */
+        .field-group { margin-bottom: 18px; }
+        .field-group:last-child { margin-bottom: 0; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    </style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div class="wrap">
+    <!-- NAV -->
+    <nav>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Studio</a>
+            <a href="forge.html" class="nav-link active">Neural Forge</a>
+            <a href="prompt.html" class="nav-link">Prompt</a>
+        </div>
+        <div class="engine-badge">
+            <div class="engine-dot"></div>
+            HF Engine
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="logo-text">Neural Forge</div>
+        <div class="logo-sub">Hugging Face Image Studio</div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-grid" style="padding: 0 12px 12px;">
+
+        <!-- LEFT: CONTROLS -->
+        <div class="panel">
+            <div class="panel-inner">
+
+                <!-- PROMPT -->
+                <div class="field-group">
+                    <label class="field-label">Prompt</label>
+                    <textarea id="prompt" rows="4" placeholder="Describe your vision…"></textarea>
+                </div>
+
+                <!-- MODEL -->
+                <div class="field-group">
+                    <label class="field-label">Model</label>
+                    <select id="model"></select>
+                    <div id="modelDesc" style="font-size:10px; color:var(--muted); margin-top:6px; min-height:14px; letter-spacing:0.03em;"></div>
+                </div>
+
+                <!-- ASPECT RATIO -->
+                <div class="field-group">
+                    <label class="field-label">Aspect Ratio</label>
+                    <div class="ratio-grid" id="ratioGrid">
+                        <button class="ratio-btn active" data-w="1024" data-h="1024" data-label="1:1" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:16px;height:16px;"></div>
+                            <span>Square</span>
+                        </button>
+                        <button class="ratio-btn" data-w="896" data-h="1152" data-label="3:4" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:12px;height:16px;"></div>
+                            <span>Portrait</span>
+                        </button>
+                        <button class="ratio-btn" data-w="1152" data-h="896" data-label="4:3" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:16px;height:12px;"></div>
+                            <span>Landscape</span>
+                        </button>
+                        <button class="ratio-btn" data-w="768" data-h="1344" data-label="9:16" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:9px;height:16px;"></div>
+                            <span>Tall</span>
+                        </button>
+                        <button class="ratio-btn" data-w="1344" data-h="768" data-label="16:9" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:16px;height:9px;"></div>
+                            <span>Wide</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BATCH SIZE -->
+                <div class="field-group">
+                    <label class="field-label">Batch Size</label>
+                    <div class="batch-grid">
+                        <button class="batch-btn active" data-n="1" onclick="setBatch(this)">1</button>
+                        <button class="batch-btn" data-n="2" onclick="setBatch(this)">2</button>
+                        <button class="batch-btn" data-n="3" onclick="setBatch(this)">3</button>
+                        <button class="batch-btn" data-n="4" onclick="setBatch(this)">4</button>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- ADVANCED -->
+                <div class="field-group">
+                    <button class="advanced-toggle" id="advToggle" onclick="toggleAdvanced()">
+                        <span class="chevron">▶</span>
+                        Advanced Options
+                    </button>
+                    <div class="advanced-body" id="advBody">
+
+                        <!-- NEGATIVE PROMPT -->
+                        <div class="field-group" style="margin-top:14px;">
+                            <label class="field-label">Negative Prompt</label>
+                            <textarea id="negative" rows="2" placeholder="blurry, low quality, deformed, watermark…"></textarea>
+                            <div id="negNote" style="font-size:9px; color:var(--muted); margin-top:5px;"></div>
+                        </div>
+
+                        <!-- SEED -->
+                        <div class="field-group">
+                            <label class="field-label">Seed <span style="color:var(--muted);font-size:9px;">(empty = random)</span></label>
+                            <div class="seed-row">
+                                <input type="number" id="seed" placeholder="e.g. 42069" min="0" max="2147483647">
+                                <button class="seed-dice" onclick="randomSeed()" title="Random seed">🎲</button>
+                            </div>
+                        </div>
+
+                        <!-- CUSTOM DIMENSIONS -->
+                        <div class="field-group">
+                            <label class="field-label">Custom Dimensions <span style="color:var(--muted);font-size:9px;">(overrides ratio)</span></label>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                <div>
+                                    <label class="field-label">W</label>
+                                    <input type="number" id="width" value="1024" min="256" max="2048" step="64">
+                                </div>
+                                <div>
+                                    <label class="field-label">H</label>
+                                    <input type="number" id="height" value="1024" min="256" max="2048" step="64">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- FORGE BUTTON -->
+                <button id="forgeBtn" onclick="generateBatch()">
+                    ⚡ Forge
+                </button>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: OUTPUT -->
+        <div class="output-panel">
+            <div class="output-header">
+                <div id="statusText">Ready</div>
+                <button class="reset-btn" onclick="clearGallery()">✕ Clear</button>
+            </div>
+
+            <div id="viewfinder">
+                <div id="resultsGrid" class="cols-1"></div>
+                <div id="placeholder">
+                    <div class="placeholder-icon">⚡</div>
+                    <div class="placeholder-text">The forge is cold</div>
+                </div>
+                <div id="loadingOverlay">
+                    <div class="forge-loader">
+                        <div class="forge-ring"></div>
+                        <div class="forge-label">Forging Vision…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-bar">
+                <div class="history-header">
+                    <div class="history-title">Session History</div>
+                    <button class="reset-btn" onclick="clearHistory()">Wipe</button>
+                </div>
+                <div id="historyThumbs"></div>
+            </div>
+        </div>
+
+    </div><!-- /main-grid -->
+</div><!-- /wrap -->
+
+<script>
+// ─────────────────────────────────────────────
+// MODEL REGISTRY
+// ─────────────────────────────────────────────
+const MODELS = [
+    // FLUX
+    { value: "black-forest-labs/FLUX.1-schnell", label: "FLUX.1 Schnell ⚡", desc: "Fast & free. Best all-rounder. Apache licensed.", family: "flux", w: 1024, h: 1024, supportsNeg: false },
+    { value: "black-forest-labs/FLUX.1-dev",     label: "FLUX.1 Dev ✦",     desc: "Higher quality, slower. Best for serious work.",  family: "flux", w: 1024, h: 1024, supportsNeg: false },
+    // SDXL
+    { value: "stabilityai/stable-diffusion-xl-base-1.0", label: "SDXL Base",        desc: "Rock solid. Photorealistic & painterly.",        family: "sdxl",       w: 1024, h: 1024, supportsNeg: true  },
+    { value: "stabilityai/sdxl-turbo",                   label: "SDXL Turbo ⚡",   desc: "1-step generation. Blazing fast, lower detail.", family: "sdxl_turbo", w: 512,  h: 512,  supportsNeg: false },
+    { value: "SG161222/RealVisXL_V4.0",                  label: "RealVisXL v4",     desc: "Ultra photorealistic. Portraits & textures.",    family: "sdxl",       w: 1024, h: 1024, supportsNeg: true  },
+    { value: "stablediffusionapi/juggernaut-xl-v6",      label: "Juggernaut XL",    desc: "Hyper-detailed realism. Cinematic.",             family: "sdxl",       w: 1024, h: 1024, supportsNeg: true  },
+    // Stylized / Dark
+    { value: "Lykon/dreamshaper-8",                label: "DreamShaper 8 🌙", desc: "Dark, painterly, cinematic. Made for your vibe.", family: "sd15", w: 768, h: 768, supportsNeg: true },
+    { value: "prompthero/openjourney-v4",          label: "OpenJourney v4",   desc: "Midjourney-ish concept art energy.",              family: "sd15", w: 512, h: 512, supportsNeg: true },
+    { value: "stabilityai/stable-diffusion-2-1",   label: "SD 2.1",           desc: "Classic. Reliable fallback.",                     family: "sd21", w: 768, h: 768, supportsNeg: true },
+    // Anime
+    { value: "cagliostrolab/animagine-xl-3.1", label: "Animagine XL 3.1", desc: "Best anime on SDXL. Vivid & detailed.",    family: "sdxl", w: 832,  h: 1216, supportsNeg: true },
+    { value: "Linaqruf/anything-v3.0",         label: "Anything v3",      desc: "Soft dreamy anime. Classic aesthetic.",    family: "sd15", w: 512,  h: 768,  supportsNeg: true },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const PROD_URL = "https://images-tau-rosy.vercel.app/api/generate";
+let currentW = 1024, currentH = 1024, currentBatch = 1;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+    populateModels();
+    setupModelListener();
+    checkUrlPrompt();
+}
+
+function populateModels() {
+    const sel = document.getElementById('model');
+    const families = {
+        flux:       { label: "── FLUX", models: [] },
+        sdxl:       { label: "── SDXL", models: [] },
+        sdxl_turbo: { label: null, models: [] }, // grouped under SDXL
+        stylized:   { label: "── Stylized", models: [] },
+        anime:      { label: "── Anime", models: [] },
+    };
+
+    // Sort into display groups
+    const groups = [
+        { label: "── FLUX",     families: ["flux"] },
+        { label: "── SDXL",     families: ["sdxl", "sdxl_turbo"] },
+        { label: "── Stylized", families: ["sd15", "sd21"] },
+        { label: "── Anime",    families: ["anime_sdxl", "anime_sd15"] },
+    ];
+
+    // Simple flat approach — just group by family prefix
+    let html = '';
+    const fluxModels    = MODELS.filter(m => m.family === 'flux');
+    const sdxlModels    = MODELS.filter(m => m.family === 'sdxl' || m.family === 'sdxl_turbo');
+    const classicModels = MODELS.filter(m => m.family === 'sd15' || m.family === 'sd21');
+    const animeModels   = MODELS.filter(m => m.value.includes('anim') || m.value.includes('anything'));
+
+    // Remove anime from classic
+    const pureClassic = classicModels.filter(m => !animeModels.includes(m));
+
+    const renderGroup = (label, models) => {
+        if (!models.length) return '';
+        return `<optgroup label="${label}">${models.map(m => `<option value="${m.value}">${m.label}</option>`).join('')}</optgroup>`;
+    };
+
+    sel.innerHTML =
+        renderGroup('FLUX', fluxModels) +
+        renderGroup('SDXL', sdxlModels) +
+        renderGroup('Stylized', pureClassic) +
+        renderGroup('Anime', animeModels);
+
+    updateModelMeta();
+}
+
+function setupModelListener() {
+    document.getElementById('model').addEventListener('change', updateModelMeta);
+}
+
+function updateModelMeta() {
+    const val = document.getElementById('model').value;
+    const m = MODELS.find(x => x.value === val);
+    if (!m) return;
+
+    document.getElementById('modelDesc').textContent = m.desc;
+
+    // Auto-set dimensions from model defaults
+    currentW = m.w;
+    currentH = m.h;
+    document.getElementById('width').value = m.w;
+    document.getElementById('height').value = m.h;
+
+    // Update ratio buttons to match
+    document.querySelectorAll('.ratio-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.w) === m.w && parseInt(b.dataset.h) === m.h);
+    });
+
+    // Negative prompt note
+    const negNote = document.getElementById('negNote');
+    negNote.textContent = m.supportsNeg
+        ? ''
+        : '⚠ This model ignores negative prompts';
+}
+
+// ─────────────────────────────────────────────
+// UI CONTROLS
+// ─────────────────────────────────────────────
+function setRatio(btn) {
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentW = parseInt(btn.dataset.w);
+    currentH = parseInt(btn.dataset.h);
+    document.getElementById('width').value  = currentW;
+    document.getElementById('height').value = currentH;
+}
+
+function setBatch(btn) {
+    document.querySelectorAll('.batch-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentBatch = parseInt(btn.dataset.n);
+}
+
+function toggleAdvanced() {
+    const toggle = document.getElementById('advToggle');
+    const body   = document.getElementById('advBody');
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+}
+
+function randomSeed() {
+    document.getElementById('seed').value = Math.floor(Math.random() * 2147483647);
+}
+
+// ─────────────────────────────────────────────
+// GENERATION
+// ─────────────────────────────────────────────
+async function generateBatch() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) { setStatus('Prompt required', 'error'); return; }
+
+    const btn     = document.getElementById('forgeBtn');
+    const grid    = document.getElementById('resultsGrid');
+    const overlay = document.getElementById('loadingOverlay');
+    const ph      = document.getElementById('placeholder');
+
+    // Set grid columns
+    grid.className = `cols-${Math.min(currentBatch, currentBatch === 1 ? 1 : currentBatch <= 2 ? 2 : currentBatch <= 3 ? 3 : 4)}`;
+
+    btn.disabled = true;
+    overlay.classList.add('show');
+    ph.style.display = 'none';
+    grid.innerHTML = '';
+    setStatus(`Forging ${currentBatch} image${currentBatch > 1 ? 's' : ''}…`, 'active');
+
+    // Create slots
+    const slots = Array.from({ length: currentBatch }, () => {
+        const slot = document.createElement('div');
+        slot.className = 'img-slot';
+        slot.innerHTML = '<div class="slot-spinner"></div>';
+        grid.appendChild(slot);
+        return slot;
+    });
+
+    const model    = document.getElementById('model').value;
+    const negative = document.getElementById('negative').value.trim();
+    const seed     = document.getElementById('seed').value;
+    const w        = parseInt(document.getElementById('width').value) || currentW;
+    const h        = parseInt(document.getElementById('height').value) || currentH;
+
+    const promises = slots.map(async (slot, i) => {
+        try {
+            const imgUrl = await callForge({ prompt, model, negative, seed: seed || null, width: w, height: h });
+            slot.innerHTML = '';
+
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.alt = prompt;
+            slot.appendChild(img);
+
+            // Prompt chip
+            const chip = document.createElement('div');
+            chip.className = 'img-prompt-chip';
+            chip.textContent = prompt.length > 60 ? prompt.slice(0, 60) + '…' : prompt;
+            slot.appendChild(chip);
+
+            // Actions bar
+            const actions = document.createElement('div');
+            actions.className = 'img-actions';
+
+            const dl = document.createElement('a');
+            dl.href = imgUrl;
+            dl.download = `forge-${Date.now()}-${i+1}.png`;
+            dl.className = 'img-action-btn';
+            dl.textContent = '↓ Save';
+            actions.appendChild(dl);
+
+            const expand = document.createElement('button');
+            expand.className = 'img-action-btn';
+            expand.textContent = '⤢ View';
+            expand.onclick = () => openFullscreen(imgUrl, prompt);
+            actions.appendChild(expand);
+
+            slot.appendChild(actions);
+            addToHistory(imgUrl, prompt);
+
+        } catch (err) {
+            slot.innerHTML = `<div class="slot-error">⚠ ${err.message || 'Generation failed'}</div>`;
+        }
+    });
+
+    await Promise.all(promises);
+
+    btn.disabled = false;
+    overlay.classList.remove('show');
+    setStatus('Forge complete', 'done');
+    setTimeout(() => setStatus('Ready', ''), 3000);
+}
+
+async function callForge({ prompt, model, negative, seed, width, height }) {
+    const body = { prompt, model, width, height };
+    if (negative) body.negative_prompt = negative;
+    if (seed)     body.seed = parseInt(seed);
+
+    const res = await fetch(PROD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+}
+
+// ─────────────────────────────────────────────
+// FULLSCREEN LIGHTBOX
+// ─────────────────────────────────────────────
+function openFullscreen(src, promptText) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position:fixed; inset:0; background:rgba(7,8,15,0.96);
+        backdrop-filter:blur(12px); z-index:999;
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center; gap:16px;
+        cursor:pointer;
+    `;
+    overlay.onclick = () => overlay.remove();
+
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'max-width:90vw; max-height:80vh; border-radius:12px; object-fit:contain;';
+
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:11px; color:rgba(255,255,255,0.4); max-width:600px; text-align:center; letter-spacing:0.05em;';
+    label.textContent = promptText;
+
+    const close = document.createElement('div');
+    close.style.cssText = 'font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:0.2em; text-transform:uppercase;';
+    close.textContent = 'tap to close';
+
+    overlay.appendChild(img);
+    overlay.appendChild(label);
+    overlay.appendChild(close);
+    document.body.appendChild(overlay);
+}
+
+// ─────────────────────────────────────────────
+// HISTORY
+// ─────────────────────────────────────────────
+function addToHistory(src, promptText) {
+    const container = document.getElementById('historyThumbs');
+    const img = document.createElement('img');
+    img.src = src;
+    img.className = 'history-thumb';
+    img.title = promptText;
+    img.onclick = () => {
+        const grid = document.getElementById('resultsGrid');
+        grid.className = 'cols-1';
+        grid.innerHTML = '';
+        const slot = document.createElement('div');
+        slot.className = 'img-slot';
+        const i = document.createElement('img');
+        i.src = src; i.alt = promptText;
+        slot.appendChild(i);
+        grid.appendChild(slot);
+        document.getElementById('placeholder').style.display = 'none';
+    };
+    container.prepend(img);
+}
+
+function clearHistory() {
+    document.getElementById('historyThumbs').innerHTML = '';
+}
+
+function clearGallery() {
+    document.getElementById('resultsGrid').innerHTML = '';
+    document.getElementById('resultsGrid').className = 'cols-1';
+    document.getElementById('placeholder').style.display = 'flex';
+    setStatus('Ready', '');
+}
+
+// ─────────────────────────────────────────────
+// STATUS
+// ─────────────────────────────────────────────
+function setStatus(text, state) {
+    const el = document.getElementById('statusText');
+    el.textContent = text;
+    el.className = state ? state : '';
+}
+
+// ─────────────────────────────────────────────
+// URL PARAM HANDOFF (from Prompt Forge)
+// ─────────────────────────────────────────────
+function checkUrlPrompt() {
+    const params = new URLSearchParams(window.location.search);
+    const p = params.get('prompt');
+    if (p) {
+        document.getElementById('prompt').value = decodeURIComponent(p);
+        setTimeout(generateBatch, 600);
+    }
+}
+
+// ─────────────────────────────────────────────
+// WIRE UP DIMENSION INPUTS
+// ─────────────────────────────────────────────
+document.getElementById('width').addEventListener('input',  e => { currentW = parseInt(e.target.value) || currentW; });
+document.getElementById('height').addEventListener('input', e => { currentH = parseInt(e.target.value) || currentH; });
+
+init();
+</script>
+</body>
+</html>
