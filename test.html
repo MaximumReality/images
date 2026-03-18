@@ -602,13 +602,10 @@
 // MODEL REGISTRY
 // ─────────────────────────────────────────────
 const MODELS = [
-    { value: "flux",          label: "FLUX ✦",       desc: "Best quality. Default model.",       w: 1024, h: 1024 },
-    { value: "turbo",         label: "Turbo ⚡",      desc: "Fast. Great for quick iterations.",  w: 1024, h: 1024 },
-    { value: "gptimage",      label: "GPT Image",    desc: "OpenAI image model.",                w: 1024, h: 1024 },
-    { value: "kontext",       label: "Kontext",      desc: "Creative & stylized output.",        w: 1024, h: 1024 },
-    { value: "seedream",      label: "Seedream",     desc: "Dreamlike aesthetic.",               w: 1024, h: 1024 },
-    { value: "nanobanana",    label: "Nanobanana 🍌", desc: "Experimental wild card.",            w: 1024, h: 1024 },
+    { value: "flux",  label: "FLUX ✦",   desc: "Best quality. Recommended.", w: 1024, h: 1024 },
+    { value: "turbo", label: "Turbo ⚡",  desc: "Faster generations.",        w: 1024, h: 1024 },
 ];
+
 
 
 
@@ -686,7 +683,7 @@ function buildUrl(prompt) {
 
     const encoded = encodeURIComponent(prompt);
     let url = `https://image.pollinations.ai/prompt/${encoded}`;
-    url += `?model=${model}&width=${w}&height=${h}&nologo=true`;
+    url += `?model=${model}&width=${w}&height=${h}&nologo=true&safe=false`;
     if (seed) url += `&seed=${seed}`;
     if (enhance) url += `&enhance=true`;
 
