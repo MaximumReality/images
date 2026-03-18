@@ -726,55 +726,52 @@ async function generateBatch() {
         ? parseInt(document.getElementById('seed').value)
         : null;
 
-    const promises = slots.map(async (slot, i) => {
-        try {
-            // Temporarily set seed per slot if needed
-            const slotSeed = baseSeed !== null ? baseSeed + i : Math.floor(Math.random() * 2147483647);
-            document.getElementById('seed').value = slotSeed;
+    // Sequential instead of parallel — respects Pollinations rate limit
+for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    try {
+        const slotSeed = baseSeed !== null ? baseSeed + i : Math.floor(Math.random() * 2147483647);
+        document.getElementById('seed').value = slotSeed;
+        const url = buildUrl(prompt);
+        if (baseSeed === null) document.getElementById('seed').value = '';
 
-            const url = buildUrl(prompt);
+        const imgUrl = await loadImage(url);
+        slot.innerHTML = '';
 
-            // Restore original seed field
-            if (baseSeed === null) document.getElementById('seed').value = '';
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.alt = prompt;
+        slot.appendChild(img);
 
-            const imgUrl = await loadImage(url);
+        const chip = document.createElement('div');
+        chip.className = 'img-prompt-chip';
+        chip.textContent = prompt.length > 60 ? prompt.slice(0, 60) + '…' : prompt;
+        slot.appendChild(chip);
 
-            slot.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = imgUrl;
-            img.alt = prompt;
-            slot.appendChild(img);
+        const actions = document.createElement('div');
+        actions.className = 'img-actions';
 
-            const chip = document.createElement('div');
-            chip.className = 'img-prompt-chip';
-            chip.textContent = prompt.length > 60 ? prompt.slice(0, 60) + '…' : prompt;
-            slot.appendChild(chip);
+        const dl = document.createElement('a');
+        dl.href = imgUrl;
+        dl.download = `forge-${Date.now()}-${i+1}.png`;
+        dl.className = 'img-action-btn';
+        dl.textContent = '↓ Save';
+        actions.appendChild(dl);
 
-            const actions = document.createElement('div');
-            actions.className = 'img-actions';
+        const view = document.createElement('button');
+        view.className = 'img-action-btn';
+        view.textContent = '⤢ View';
+        view.onclick = () => openFullscreen(imgUrl, prompt);
+        actions.appendChild(view);
 
-            const dl = document.createElement('a');
-            dl.href = imgUrl;
-            dl.download = `forge-${Date.now()}-${i+1}.png`;
-            dl.className = 'img-action-btn';
-            dl.textContent = '↓ Save';
-            actions.appendChild(dl);
+        slot.appendChild(actions);
+        addToHistory(imgUrl, prompt);
 
-            const view = document.createElement('button');
-            view.className = 'img-action-btn';
-            view.textContent = '⤢ View';
-            view.onclick = () => openFullscreen(imgUrl, prompt);
-            actions.appendChild(view);
+    } catch (err) {
+        slot.innerHTML = `<div class="slot-error">⚠ ${err.message || 'Generation failed'}</div>`;
+    }
+}
 
-            slot.appendChild(actions);
-            addToHistory(imgUrl, prompt);
-
-        } catch (err) {
-            slot.innerHTML = `<div class="slot-error">⚠ ${err.message || 'Generation failed'}</div>`;
-        }
-    });
-
-    await Promise.all(promises);
 
     btn.disabled = false;
     overlay.classList.remove('show');
