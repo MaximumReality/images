@@ -686,13 +686,13 @@ function buildUrl(prompt) {
 
     const encoded = encodeURIComponent(prompt);
     let url = `https://image.pollinations.ai/prompt/${encoded}`;
-
     url += `?model=${model}&width=${w}&height=${h}&nologo=true`;
     if (seed) url += `&seed=${seed}`;
     if (enhance) url += `&enhance=true`;
 
     return url;
 }
+
 
 
 // ─────────────────────────────────────────────
@@ -792,7 +792,7 @@ function loadImage(url) {
         img.onload = () => resolve(url);
         img.onerror = () => reject(new Error('Image failed to load'));
         img.src = url;
-        setTimeout(() => reject(new Error('Timed out after 90s')), 90000);
+        setTimeout(() => reject(new Error('Timed out — try again')), 180000);
     });
 }
 
