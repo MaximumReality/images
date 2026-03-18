@@ -811,22 +811,19 @@
 // MODEL REGISTRY
 // ─────────────────────────────────────────────
 const MODELS = [
-    // FLUX
-    { value: "black-forest-labs/FLUX.1-schnell", label: "FLUX.1 Schnell ⚡", desc: "Fast & free. Best all-rounder. Apache licensed.", family: "flux", w: 1024, h: 1024, supportsNeg: false },
-    { value: "black-forest-labs/FLUX.1-dev",     label: "FLUX.1 Dev ✦",     desc: "Higher quality, slower. Best for serious work.",  family: "flux", w: 1024, h: 1024, supportsNeg: false },
-    // SDXL
-    { value: "stabilityai/stable-diffusion-xl-base-1.0", label: "SDXL Base",        desc: "Rock solid. Photorealistic & painterly.",        family: "sdxl",       w: 1024, h: 1024, supportsNeg: true  },
-    { value: "stabilityai/sdxl-turbo",                   label: "SDXL Turbo ⚡",   desc: "1-step generation. Blazing fast, lower detail.", family: "sdxl_turbo", w: 512,  h: 512,  supportsNeg: false },
-    { value: "SG161222/RealVisXL_V4.0",                  label: "RealVisXL v4",     desc: "Ultra photorealistic. Portraits & textures.",    family: "sdxl",       w: 1024, h: 1024, supportsNeg: true  },
-    { value: "stablediffusionapi/juggernaut-xl-v6",      label: "Juggernaut XL",    desc: "Hyper-detailed realism. Cinematic.",             family: "sdxl",       w: 1024, h: 1024, supportsNeg: true  },
-    // Stylized / Dark
-    { value: "Lykon/dreamshaper-8",                label: "DreamShaper 8 🌙", desc: "Dark, painterly, cinematic. Made for your vibe.", family: "sd15", w: 768, h: 768, supportsNeg: true },
-    { value: "prompthero/openjourney-v4",          label: "OpenJourney v4",   desc: "Midjourney-ish concept art energy.",              family: "sd15", w: 512, h: 512, supportsNeg: true },
-    { value: "stabilityai/stable-diffusion-2-1",   label: "SD 2.1",           desc: "Classic. Reliable fallback.",                     family: "sd21", w: 768, h: 768, supportsNeg: true },
-    // Anime
-    { value: "cagliostrolab/animagine-xl-3.1", label: "Animagine XL 3.1", desc: "Best anime on SDXL. Vivid & detailed.",    family: "sdxl", w: 832,  h: 1216, supportsNeg: true },
-    { value: "Linaqruf/anything-v3.0",         label: "Anything v3",      desc: "Soft dreamy anime. Classic aesthetic.",    family: "sd15", w: 512,  h: 768,  supportsNeg: true },
+    // ── FLUX (confirmed working) ──
+    { value: "black-forest-labs/FLUX.1-schnell", label: "FLUX.1 Schnell ⚡", desc: "Fast & free. Best all-rounder.", family: "flux", w: 1024, h: 1024, supportsNeg: false },
+    { value: "black-forest-labs/FLUX.1-dev",     label: "FLUX.1 Dev ✦",     desc: "Higher quality, slower. Worth the wait.", family: "flux", w: 1024, h: 1024, supportsNeg: false },
+
+    // ── SDXL (confirmed working) ──
+    { value: "stabilityai/stable-diffusion-xl-base-1.0", label: "SDXL Base", desc: "Rock solid. Photorealistic & painterly.", family: "sdxl", w: 1024, h: 1024, supportsNeg: true },
+    { value: "stabilityai/sdxl-turbo",                   label: "SDXL Turbo ⚡", desc: "1-step. Blazing fast, rougher output.", family: "sdxl_turbo", w: 512, h: 512, supportsNeg: false },
+
+    // ── Worth trying ──
+    { value: "ByteDance/SDXL-Lightning", label: "SDXL Lightning ⚡", desc: "ByteDance fast SDXL. Try it.", family: "sdxl", w: 1024, h: 1024, supportsNeg: true },
+    { value: "stabilityai/stable-diffusion-2-1", label: "SD 2.1", desc: "Classic fallback. Reliable.", family: "sd21", w: 768, h: 768, supportsNeg: true },
 ];
+
 
 // ─────────────────────────────────────────────
 // STATE
