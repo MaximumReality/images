@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "api/generate.js": {
+      "runtime": "nodejs24.x"
+    }
+  },
   "headers": [
     {
       "source": "/api/(.*)",
