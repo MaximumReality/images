@@ -151,14 +151,21 @@ export default async function handler(req, res) {
     );
 
     if (!response.ok) {
-      // Try to parse HF error message for useful feedback
-      let errorBody;
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        errorBody = await response.json();
-      } else {
-        errorBody = { error: await response.text() };
-      }
+  let errorMsg = `HTTP ${response.status}`;
+  try {
+    const text = await response.text();
+    const json = JSON.parse(text);
+    errorMsg = json.error || json.message || errorMsg;
+  } catch {
+    // response wasn't JSON, use status code
+  }
+
+  if (response.status === 503) {
+    return res.status(503).json({ error: "Model is loading — try again in 20–30 seconds" });
+  }
+
+  return res.status(response.status).json({ error: errorMsg });
+}
 
       // Surface model-loading state clearly
       if (response.status === 503) {
