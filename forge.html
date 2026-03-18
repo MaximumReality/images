@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Forge • HF Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#07080f;--surface:#0d0f1c;--surface2:#121526;
+            --border:rgba(255,255,255,0.07);--border-hi:rgba(125,249,255,0.25);
+            --cyan:#7df9ff;--violet:#b993ff;--magenta:#ff77c8;--forge:#ff6a2f;
+            --text:#dde2f0;--muted:#525870;
+            --glow-cyan:rgba(125,249,255,0.18);--glow-vio:rgba(185,147,255,0.18);
+        }
+        *{box-sizing:border-box}
+        body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden}
+        body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 15% 10%,rgba(185,147,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 50% 35% at 85% 80%,rgba(125,249,255,0.05) 0%,transparent 55%),radial-gradient(ellipse 40% 30% at 50% 50%,rgba(255,106,47,0.03) 0%,transparent 60%);pointer-events:none;z-index:0}
+        body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.6}
+        .wrap{position:relative;z-index:1}
+        nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:rgba(7,8,15,0.85);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+        .nav-links{display:flex;gap:2px}
+        .nav-link{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;padding:6px 14px;border-radius:4px;color:var(--muted);transition:color .2s,background .2s;border:1px solid transparent}
+        .nav-link:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+        .nav-link.active{color:var(--cyan);border-color:rgba(125,249,255,0.2);background:rgba(125,249,255,0.05)}
+        .engine-badge{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid rgba(52,211,153,0.3);color:#34d399;background:rgba(52,211,153,0.06);display:flex;align-items:center;gap:6px}
+        .engine-dot{width:5px;height:5px;border-radius:50%;background:#34d399;animation:pulse-dot 2s ease-in-out infinite}
+        @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.3}}
+        .page-header{padding:36px 24px 24px}
+        .logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;letter-spacing:-0.02em;background:linear-gradient(100deg,var(--cyan) 0%,var(--violet) 50%,var(--magenta) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+        .logo-sub{font-size:11px;color:var(--muted);letter-spacing:0.1em;margin-top:6px}
+        .main-grid{display:grid;grid-template-columns:380px 1fr;gap:2px;padding:0 12px 12px}
+        @media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+        .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+        .panel-inner{padding:24px}
+        .field-label{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+        textarea,input[type=text],input[type=number],select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:12px 14px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+        textarea:focus,input:focus,select:focus{border-color:var(--border-hi);box-shadow:0 0 0 3px var(--glow-cyan)}
+        textarea{resize:none}
+        select{cursor:pointer}
+        select option.paid{color:var(--muted)}
+        .ratio-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+        .ratio-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9px;padding:10px 4px 8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:5px}
+        .ratio-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
+        .ratio-btn.active{background:rgba(125,249,255,0.08);border-color:var(--border-hi);color:var(--cyan)}
+        .ratio-icon{background:currentColor;border-radius:2px;opacity:0.6}
+        .batch-grid{display:flex;gap:6px}
+        .batch-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px;cursor:pointer;transition:all .15s;text-align:center}
+        .batch-btn:hover{color:var(--text)}
+        .batch-btn.active{background:rgba(185,147,255,0.1);border-color:rgba(185,147,255,0.3);color:var(--violet)}
+        .seed-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+        .seed-dice{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:16px;padding:11px 14px;cursor:pointer;transition:all .15s;line-height:1}
+        .seed-dice:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
+        .advanced-toggle{background:none;border:none;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0;transition:color .2s;width:100%}
+        .advanced-toggle:hover{color:var(--text)}
+        .advanced-toggle .chevron{transition:transform .2s;font-size:8px}
+        .advanced-toggle.open .chevron{transform:rotate(90deg)}
+        .advanced-body{display:none;margin-top:14px}
+        .advanced-body.open{display:block}
+        .divider{height:1px;background:var(--border);margin:20px 0}
+        #forgeBtn{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--cyan),var(--violet),var(--magenta));color:#04050c;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;box-shadow:0 0 30px rgba(125,249,255,0.15),0 0 60px rgba(185,147,255,0.1);position:relative;overflow:hidden}
+        #forgeBtn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);opacity:0;transition:opacity .2s}
+        #forgeBtn:hover::after{opacity:1}
+        #forgeBtn:hover{box-shadow:0 0 40px rgba(125,249,255,0.25),0 0 80px rgba(185,147,255,0.15)}
+        #forgeBtn:active{transform:scale(0.98)}
+        #forgeBtn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+        .output-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;overflow:hidden}
+        .output-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        #statusText{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted)}
+        #statusText.active{color:var(--cyan)}
+        #statusText.error{color:var(--magenta)}
+        #statusText.done{color:#34d399}
+        .reset-btn{background:none;border:none;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;cursor:pointer;transition:color .15s;padding:4px 8px}
+        .reset-btn:hover{color:var(--text)}
+        #viewfinder{flex:1;padding:20px;overflow-y:auto;min-height:400px;position:relative}
+        #resultsGrid{display:grid;gap:12px}
+        #resultsGrid.cols-1{grid-template-columns:1fr}
+        #resultsGrid.cols-2{grid-template-columns:repeat(2,1fr)}
+        #resultsGrid.cols-3{grid-template-columns:repeat(3,1fr)}
+        #resultsGrid.cols-4{grid-template-columns:repeat(2,1fr)}
+        #placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted)}
+        .placeholder-icon{width:48px;height:48px;border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;opacity:0.4}
+        .placeholder-text{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;opacity:0.4}
+        #loadingOverlay{display:none;position:absolute;inset:0;background:rgba(7,8,15,0.92);backdrop-filter:blur(8px);z-index:10;align-items:center;justify-content:center;border-radius:8px}
+        #loadingOverlay.show{display:flex}
+        .forge-ring{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--cyan);border-right-color:var(--violet);animation:spin 1s linear infinite;margin:0 auto;box-shadow:0 0 20px var(--glow-cyan)}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .forge-label{margin-top:18px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);animation:flicker 2s ease-in-out infinite}
+        @keyframes flicker{0%,100%{opacity:1}50%{opacity:0.5}}
+        .img-slot{position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;aspect-ratio:1;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+        .img-slot:hover{border-color:var(--border-hi)}
+        .img-slot img{width:100%;height:100%;object-fit:cover;display:block;border-radius:11px}
+        .slot-spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--violet);border-radius:50%;animation:spin .8s linear infinite}
+        .slot-error{font-size:10px;color:var(--magenta);text-align:center;padding:16px;line-height:1.6}
+        .img-actions{position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent,rgba(7,8,15,0.9));display:flex;gap:6px;opacity:0;transition:opacity .2s}
+        .img-slot:hover .img-actions{opacity:1}
+        .img-action-btn{flex:1;background:rgba(13,15,28,0.9);border:1px solid var(--border-hi);border-radius:6px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px;cursor:pointer;text-align:center;text-decoration:none;transition:background .15s;display:block}
+        .img-action-btn:hover{background:rgba(125,249,255,0.12)}
+        .img-prompt-chip{position:absolute;top:8px;left:8px;right:8px;background:rgba(7,8,15,0.85);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:9px;color:var(--muted);opacity:0;transition:opacity .2s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+        .img-slot:hover .img-prompt-chip{opacity:1}
+        .history-bar{padding:14px 20px;border-top:1px solid var(--border)}
+        .history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+        .history-title{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}
+        #historyThumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;min-height:52px}
+        #historyThumbs::-webkit-scrollbar{height:3px}
+        #historyThumbs::-webkit-scrollbar-track{background:var(--surface)}
+        #historyThumbs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+        .history-thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;flex-shrink:0;transition:border-color .15s,transform .15s}
+        .history-thumb:hover{border-color:var(--border-hi);transform:scale(1.08)}
+        .field-group{margin-bottom:18px}
+        .field-group:last-child{margin-bottom:0}
+        ::-webkit-scrollbar{width:4px}
+        ::-webkit-scrollbar-track{background:var(--bg)}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+        .model-divider{color:var(--muted);font-size:10px;background:var(--surface2)}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <nav>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Studio</a>
+            <a href="forge.html" class="nav-link active">Neural Forge</a>
+            <a href="prompt.html" class="nav-link">Prompt</a>
+        </div>
+        <div class="engine-badge">
+            <div class="engine-dot"></div>
+            Pollinations
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="logo-text">Neural Forge</div>
+        <div class="logo-sub">Powered by Pollinations.ai • via secure proxy</div>
+    </div>
+
+    <div class="main-grid">
+        <div class="panel">
+            <div class="panel-inner">
+                <div class="field-group">
+                    <label class="field-label">Prompt</label>
+                    <textarea id="prompt" rows="4" placeholder="Describe your vision…"></textarea>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Model</label>
+                    <select id="model"></select>
+                    <div id="modelDesc" style="font-size:10px;color:var(--muted);margin-top:6px;min-height:14px;"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Aspect Ratio</label>
+                    <div class="ratio-grid">
+                        <button class="ratio-btn active" data-w="1024" data-h="1024" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:16px;height:16px;"></div><span>Square</span>
+                        </button>
+                        <button class="ratio-btn" data-w="896" data-h="1152" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:12px;height:16px;"></div><span>Portrait</span>
+                        </button>
+                        <button class="ratio-btn" data-w="1152" data-h="896" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:16px;height:12px;"></div><span>Land</span>
+                        </button>
+                        <button class="ratio-btn" data-w="768" data-h="1344" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:9px;height:16px;"></div><span>Tall</span>
+                        </button>
+                        <button class="ratio-btn" data-w="1344" data-h="768" onclick="setRatio(this)">
+                            <div class="ratio-icon" style="width:16px;height:9px;"></div><span>Wide</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Batch Size</label>
+                    <div class="batch-grid">
+                        <button class="batch-btn active" data-n="1" onclick="setBatch(this)">1</button>
+                        <button class="batch-btn" data-n="2" onclick="setBatch(this)">2</button>
+                        <button class="batch-btn" data-n="3" onclick="setBatch(this)">3</button>
+                        <button class="batch-btn" data-n="4" onclick="setBatch(this)">4</button>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="field-group">
+                    <button class="advanced-toggle" id="advToggle" onclick="toggleAdvanced()">
+                        <span class="chevron">▶</span>
+                        Advanced Options
+                    </button>
+                    <div class="advanced-body" id="advBody">
+                        <div class="field-group" style="margin-top:14px;">
+                            <label class="field-label">Seed <span style="color:var(--muted);font-size:9px;">(lock for reproducible results)</span></label>
+                            <div class="seed-row">
+                                <input type="number" id="seed" placeholder="empty = random" min="0" max="2147483647">
+                                <button class="seed-dice" onclick="randomSeed()" title="Random seed">🎲</button>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Enhance Prompt</label>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <input type="checkbox" id="enhance" style="width:auto;padding:0;accent-color:var(--cyan);">
+                                <span style="font-size:10px;color:var(--muted);">Let Pollinations AI improve your prompt</span>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Custom Dimensions <span style="color:var(--muted);font-size:9px;">(overrides ratio)</span></label>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <div>
+                                    <label class="field-label">W</label>
+                                    <input type="number" id="width" value="1024" min="256" max="2048" step="64">
+                                </div>
+                                <div>
+                                    <label class="field-label">H</label>
+                                    <input type="number" id="height" value="1024" min="256" max="2048" step="64">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <button id="forgeBtn" onclick="generateBatch()">⚡ Forge</button>
+            </div>
+        </div>
+
+        <div class="output-panel">
+            <div class="output-header">
+                <div id="statusText">Ready</div>
+                <button class="reset-btn" onclick="clearGallery()">✕ Clear</button>
+            </div>
+            <div id="viewfinder">
+                <div id="resultsGrid" class="cols-1"></div>
+                <div id="placeholder">
+                    <div class="placeholder-icon">⚡</div>
+                    <div class="placeholder-text">The forge is cold</div>
+                </div>
+                <div id="loadingOverlay">
+                    <div style="text-align:center;">
+                        <div class="forge-ring"></div>
+                        <div class="forge-label">Forging Vision…</div>
+                    </div>
+                </div>
+            </div>
+            <div class="history-bar">
+                <div class="history-header">
+                    <div class="history-title">Session History</div>
+                    <button class="reset-btn" onclick="clearHistory()">Wipe</button>
+                </div>
+                <div id="historyThumbs"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const PROXY_URL = 'https://images-pollinations.vercel.app/api/forge';
+
+// Free models (no paid_only flag) + paid ones clearly labelled
+const MODELS = [
+    // ── FREE ──────────────────────────────────────────────────────
+    { value:"flux",         label:"FLUX",           desc:"Fast, high-quality. Best all-rounder.",     free:true  },
+    { value:"gptimage",     label:"GPT Image",      desc:"OpenAI image model. Great detail.",         free:true  },
+    { value:"zimage",       label:"Z-Image Turbo",  desc:"Fast FLUX 6B with built-in 2x upscale.",   free:true  },
+    { value:"flux-2-dev",   label:"FLUX 2 Dev",     desc:"Next-gen FLUX, strong composition.",        free:true  },
+    { value:"klein",        label:"FLUX Klein",     desc:"Fast 4B model, good for editing.",          free:true  },
+    { value:"imagen-4",     label:"Imagen 4",       desc:"Google's latest image gen.",                free:true  },
+    { value:"grok-imagine", label:"Grok Imagine",   desc:"xAI image generation.",                     free:true  },
+    { value:"dirtberry",    label:"Dirtberry",      desc:"Quick, realistic generations.",             free:true  },
+    { value:"dirtberry-pro",label:"Dirtberry Pro",  desc:"High-quality realism & complex scenes.",   free:true  },
+    // ── PAID (requires Pollen balance) ────────────────────────────
+    { value:"kontext",      label:"Kontext",        desc:"In-context editing. Requires Pollen.",      free:false },
+    { value:"seedream5",    label:"Seedream 5",     desc:"ByteDance dreamlike aesthetic. Requires Pollen.", free:false },
+    { value:"gptimage-large",label:"GPT Image Large",desc:"OpenAI advanced model. Requires Pollen.", free:false },
+    { value:"nanobanana",   label:"Nano Banana",    desc:"Gemini Flash image. Requires Pollen.",      free:false },
+];
+
+let currentW=1024,currentH=1024,currentBatch=1;
+
+function init(){
+    populateModels();
+    document.getElementById('model').addEventListener('change',updateModelMeta);
+    document.getElementById('width').addEventListener('input',e=>{currentW=parseInt(e.target.value)||currentW});
+    document.getElementById('height').addEventListener('input',e=>{currentH=parseInt(e.target.value)||currentH});
+    checkUrlPrompt();
+}
+
+function populateModels(){
+    const sel=document.getElementById('model');
+    const freeOpts = MODELS.filter(m=>m.free).map(m=>`<option value="${m.value}">${m.label}</option>`).join('');
+    const paidOpts = MODELS.filter(m=>!m.free).map(m=>`<option value="${m.value}" class="paid">${m.label} ✦ Pollen</option>`).join('');
+    sel.innerHTML = `<optgroup label="── Free ──────────────">${freeOpts}</optgroup><optgroup label="── Paid (Pollen) ──────">${paidOpts}</optgroup>`;
+    updateModelMeta();
+}
+
+function updateModelMeta(){
+    const val=document.getElementById('model').value;
+    const m=MODELS.find(x=>x.value===val);
+    if(!m)return;
+    const descEl=document.getElementById('modelDesc');
+    descEl.textContent=m.desc;
+    descEl.style.color=m.free?'var(--muted)':'var(--violet)';
+}
+
+function setRatio(btn){
+    document.querySelectorAll('.ratio-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentW=parseInt(btn.dataset.w);currentH=parseInt(btn.dataset.h);
+    document.getElementById('width').value=currentW;
+    document.getElementById('height').value=currentH;
+}
+
+function setBatch(btn){
+    document.querySelectorAll('.batch-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentBatch=parseInt(btn.dataset.n);
+}
+
+function toggleAdvanced(){
+    document.getElementById('advToggle').classList.toggle('open');
+    document.getElementById('advBody').classList.toggle('open');
+}
+
+function randomSeed(){
+    document.getElementById('seed').value=Math.floor(Math.random()*2147483647);
+}
+
+function buildUrl(prompt,seed){
+    const model=document.getElementById('model').value;
+    const enhance=document.getElementById('enhance').checked;
+    const w=parseInt(document.getElementById('width').value)||currentW;
+    const h=parseInt(document.getElementById('height').value)||currentH;
+    const url=new URL(PROXY_URL);
+    url.searchParams.set('prompt',prompt);
+    url.searchParams.set('model',model);
+    url.searchParams.set('width',w);
+    url.searchParams.set('height',h);
+    url.searchParams.set('nologo','true');
+    url.searchParams.set('safe','false');
+    if(seed!==undefined&&seed!==null)url.searchParams.set('seed',seed);
+    if(enhance)url.searchParams.set('enhance','true');
+    return url.toString();
+}
+
+async function generateBatch(){
+    const prompt=document.getElementById('prompt').value.trim();
+    if(!prompt){setStatus('Prompt required','error');return;}
+    const btn=document.getElementById('forgeBtn');
+    const grid=document.getElementById('resultsGrid');
+    const overlay=document.getElementById('loadingOverlay');
+    const ph=document.getElementById('placeholder');
+    const colClass=currentBatch===1?'cols-1':currentBatch===2?'cols-2':currentBatch===3?'cols-3':'cols-4';
+    grid.className=colClass;
+    btn.disabled=true;overlay.classList.add('show');ph.style.display='none';grid.innerHTML='';
+    setStatus(`Forging ${currentBatch} image${currentBatch>1?'s':''}…`,'active');
+    const slots=Array.from({length:currentBatch},()=>{
+        const slot=document.createElement('div');
+        slot.className='img-slot';
+        slot.innerHTML='<div class="slot-spinner"></div>';
+        grid.appendChild(slot);return slot;
+    });
+    const baseSeed=document.getElementById('seed').value?parseInt(document.getElementById('seed').value):null;
+    for(let i=0;i<slots.length;i++){
+        const slot=slots[i];
+        try{
+            const slotSeed=baseSeed!==null?baseSeed+i:Math.floor(Math.random()*2147483647);
+            const url=buildUrl(prompt,slotSeed);
+            const imgUrl=await loadImage(url);
+            slot.innerHTML='';
+            const img=document.createElement('img');img.src=imgUrl;img.alt=prompt;slot.appendChild(img);
+            const chip=document.createElement('div');chip.className='img-prompt-chip';
+            chip.textContent=prompt.length>60?prompt.slice(0,60)+'…':prompt;slot.appendChild(chip);
+            const actions=document.createElement('div');actions.className='img-actions';
+            const dl=document.createElement('a');dl.href=imgUrl;dl.download=`forge-${Date.now()}-${i+1}.png`;
+            dl.className='img-action-btn';dl.textContent='↓ Save';actions.appendChild(dl);
+            const view=document.createElement('button');view.className='img-action-btn';view.textContent='⤢ View';
+            view.onclick=()=>openFullscreen(imgUrl,prompt);actions.appendChild(view);
+            slot.appendChild(actions);addToHistory(imgUrl,prompt);
+        }catch(err){
+            let msg=err.message||'Generation failed';
+            if(msg.includes('402'))msg='Out of Pollen — top up at enter.pollinations.ai';
+            if(msg.includes('400'))msg='Model unavailable or bad request';
+            slot.innerHTML=`<div class="slot-error">⚠ ${msg}</div>`;
+        }
+    }
+    btn.disabled=false;overlay.classList.remove('show');
+    setStatus('Forge complete','done');setTimeout(()=>setStatus('Ready',''),3000);
+}
+
+function loadImage(url){
+    return new Promise((resolve,reject)=>{
+        const img=new Image();img.crossOrigin='anonymous';
+        img.onload=()=>resolve(url);
+        img.onerror=()=>{
+            fetch(url).then(r=>{
+                if(!r.ok)reject(new Error(`${r.status}`));
+                else reject(new Error('Image failed to load'));
+            }).catch(()=>reject(new Error('Network error')));
+        };
+        img.src=url;
+        setTimeout(()=>reject(new Error('Timed out — try again')),180000);
+    });
+}
+
+function openFullscreen(src,promptText){
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(7,8,15,0.96);backdrop-filter:blur(12px);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer;';
+    overlay.onclick=()=>overlay.remove();
+    const img=document.createElement('img');img.src=src;img.style.cssText='max-width:90vw;max-height:80vh;border-radius:12px;object-fit:contain;';
+    const label=document.createElement('div');label.style.cssText='font-size:11px;color:rgba(255,255,255,0.4);max-width:600px;text-align:center;';label.textContent=promptText;
+    const close=document.createElement('div');close.style.cssText='font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.2em;text-transform:uppercase;';close.textContent='tap to close';
+    overlay.appendChild(img);overlay.appendChild(label);overlay.appendChild(close);document.body.appendChild(overlay);
+}
+
+function addToHistory(src,promptText){
+    const container=document.getElementById('historyThumbs');
+    const img=document.createElement('img');img.src=src;img.className='history-thumb';img.title=promptText;
+    img.onclick=()=>{
+        const grid=document.getElementById('resultsGrid');grid.className='cols-1';grid.innerHTML='';
+        const slot=document.createElement('div');slot.className='img-slot';
+        const i=document.createElement('img');i.src=src;i.alt=promptText;slot.appendChild(i);grid.appendChild(slot);
+        document.getElementById('placeholder').style.display='none';
+    };
+    container.prepend(img);
+}
+
+function clearHistory(){document.getElementById('historyThumbs').innerHTML='';}
+
+function clearGallery(){
+    document.getElementById('resultsGrid').innerHTML='';
+    document.getElementById('resultsGrid').className='cols-1';
+    document.getElementById('placeholder').style.display='flex';
+    setStatus('Ready','');
+}
+
+function setStatus(text,state){
+    const el=document.getElementById('statusText');el.textContent=text;el.className=state||'';
+}
+
+function checkUrlPrompt(){
+    const p=new URLSearchParams(window.location.search).get('prompt');
+    if(p){document.getElementById('prompt').value=decodeURIComponent(p);setTimeout(generateBatch,600);}
+}
+
+init();
+</script>
+</body>
+</html>
